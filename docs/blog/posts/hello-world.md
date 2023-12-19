@@ -13,9 +13,5 @@ tags:
 
 # Hello World Blogpost
 
-Blog excerpt here
-
-<!-- more -->
-
-Rest of blog here
+Init
 ...
