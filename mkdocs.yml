@@ -2,6 +2,12 @@ site_name: mondalogue
 site_url: https://avishek-mondal.github.io/digital-garden/
 
 theme:
+    nav:
+      - Home: 'blog/index.md'
+
+    features:
+      - navigation.sections
+
     name: 'material'
     palette:
 
@@ -52,7 +58,14 @@ markdown_extensions:
 plugins:
   - search
   - roamlinks
-  - blog
+  - redirects:
+      redirect_maps:
+        'index.md': 'blog/index.md'
+
+
+  - blog:
+      # post_dir: "{blog}/"
+      blog_toc: true
   - rss:
       match_path: blog/posts/.* 
       date_from_meta:
@@ -66,6 +79,3 @@ extra_javascript:
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
   - https://unpkg.com/mermaid/dist/mermaid.min.js 
-
-exclude_docs: |
-  "docs/drafts/*"
