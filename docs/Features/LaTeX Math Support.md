@@ -1,3 +1,11 @@
+---
+draft: true
+date: 2024-01-10
+tags:
+  - demos
+---
+
+
 # LaTeX Math Support
 
 LaTeX math is supported using MathJax.

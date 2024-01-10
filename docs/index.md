@@ -1,4 +1,4 @@
-# Obsidian Notes
+# Hello!
 
 Publish your public notes with MkDocs
 
