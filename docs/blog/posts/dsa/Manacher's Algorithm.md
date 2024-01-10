@@ -1,6 +1,6 @@
 ---
-draft: true
-date: 2023-01-31
+draft: false
+date: 2024-01-04
 slug: manacher-algo
 categories:
   - algorithms
@@ -11,6 +11,8 @@ Super annoying algorithm, but it has uses in [bioinfomatics](https://stackoverfl
 
 Here's the task:
 Given a string `s`, return the longest palindromic substring  in `s`.
+
+<!-- more -->
 
 Example inputs and outputs:
 
