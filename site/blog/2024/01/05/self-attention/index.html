@@ -1,0 +1,1150 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://avishek-mondal.github.io/digital-garden/blog/2024/01/05/self-attention/">
+      
+      
+        <link rel="prev" href="../../04/manacher-algo/">
+      
+      
+      
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../../../../feed_rss_created.xml">
+        <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../../../../feed_rss_updated.xml">
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+    
+    
+      
+        <title>Self Attention - mondalogue</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.50c56a3b.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../css/custom.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-does-self-attention-work" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="mondalogue" class="md-header__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            mondalogue
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Self Attention
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="mondalogue" class="md-nav__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    mondalogue
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+      
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Blog
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Blog
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hello!
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Archive
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2024/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2024
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Categories
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Categories
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#brief-introduction-to-the-problem-of-translation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Brief introduction to the problem of translation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Brief introduction to the problem of translation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-do-you-train-a-neural-machine-translation-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      How do you train a  neural machine translation system?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tokenization-brief-remarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tokenization - brief remarks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#embedding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Embedding
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Embedding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#positional-embeddingencoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Positional Embedding/Encoding
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Self-attention
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Self-attention">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-self-attention-why-not-just-use-fully-connected-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why self-attention? Why not just use fully connected layers?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-attention-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      Self attention block
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                        <time datetime="2024-01-05 00:00:00" class="md-ellipsis">January 5, 2024</time>
+                      </div>
+                    </li>
+                    
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7h1.5Z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              19 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+
+
+<h1 id="how-does-self-attention-work">How does self attention work?<a class="headerlink" href="#how-does-self-attention-work" title="Permanent link">&para;</a></h1>
+<p>Self-attention is the cornerstone of a transformer block. We are going to go through the intuition behind the following steps:</p>
+<ol>
+<li>Tokenization</li>
+<li>Embedding</li>
+<li>The self attention mechanism</li>
+</ol>
+<p>by using raw, non-vectorised Python code as much as possible.</p>
+<!-- more -->
+
+<p>The original transformer paper <a href="https://arxiv.org/pdf/1706.03762.pdf">here</a> is actually easy to read for a technical paper, but difficult to wrap your head around if this is the first time you are dipping your toes into neural networks. Other resources, like "<a href="https://jalammar.github.io/illustrated-transformer/">The Illustrated Transformer</a>" don't really have code. One resource that does have code is the "<a href="https://udlbook.github.io/udlbook/">Understanding Deep Learning</a>" (UDL) book, that I will be leaning on heavily for this post.</p>
+<p>Before we get to the famous equation -</p>
+<div class="arithmatex">\[
+\text{selfAttention}[X] = V[X]\text{softmax}(\frac{K^TQ}{\sqrt{D_q}})
+\]</div>
+<p>let's see what the steps often are <em>before</em> a matrix/tensor gets to the self-attention mechanism. </p>
+<p>Many images are from the UDL book, and a lot of the code is covered in the notebooks 
+published alongside the book. </p>
+<p>Before diving into architectural details, we have to remind ourselves what the problem it is that transformers had set out to solve: <a href="https://blog.google/products/translate/found-translation-more-accurate-fluent-sentences-google-translate/">translation</a> </p>
+<h2 id="brief-introduction-to-the-problem-of-translation">Brief introduction to the problem of translation<a class="headerlink" href="#brief-introduction-to-the-problem-of-translation" title="Permanent link">&para;</a></h2>
+<p>Translation is the "flagship" natural language processing task. The general inputs and outputs of the problem are incredibly simple to describe - given a sequence of words in one language, return a sequence of words in another language automatically. </p>
+<div class="highlight"><pre><span></span><code>Input: I am a student.
+
+Output: আমি একজন ছাত্র।
+</code></pre></div>
+<p>Before deep learning methods were used to tackle this problem, companies like Google used <a href="https://toppandigital.com/translation-blog/google-ai-invents-language-translate-languages/">statistical, phrase-based systems</a> that did not work that well, and did not scale to many languages.</p>
+<p>Nowadays, all dominant translation systems use neural networks to do their translation. </p>
+<h3 id="how-do-you-train-a-neural-machine-translation-system">How do you train a  <em>neural</em> machine translation system?<a class="headerlink" href="#how-do-you-train-a-neural-machine-translation-system" title="Permanent link">&para;</a></h3>
+<p>There are many approaches to neural machine translation, but what I'll cover here is sequence to sequence way the <a href="https://arxiv.org/pdf/1706.03762.pdf">"Attention is all you need"</a> paper did it.</p>
+<p>We'll walk through the following broad sections:
+1. Tokenization
+2. Embedding
+3. Self attention</p>
+<h2 id="tokenization-brief-remarks">Tokenization - brief remarks<a class="headerlink" href="#tokenization-brief-remarks" title="Permanent link">&para;</a></h2>
+<p>To use any neural based system, inputs and outputs must be vectors of floats. 
+The process of converting words/sequence of words into vectors of floats is called tokenization. Tokenization won't be covered in detail here, and there are <a href="https://www.youtube.com/watch?v=zduSFxRajkE&amp;ab_channel=AndrejKarpathy">several resources</a> that go over the different techniques (my personal favourite is the series of <a href="https://www.youtube.com/watch?v=ERibwqs9p38&amp;ab_channel=StanfordUniversitySchoolofEngineering">lectures from Stanford</a>). The main thing to remember for tokenization is the input and the output - (example is from <a href="https://huggingface.co/docs/transformers/en/tokenizer_summary">HuggingFace</a>): </p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">BertTokenizer</span>
+
+<span class="n">inp</span> <span class="o">=</span> <span class="s2">&quot;I love gpus!&quot;</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">BertTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;google-bert/bert-base-uncased&quot;</span><span class="p">)</span>
+
+<span class="n">inp_str</span> <span class="o">=</span> <span class="s2">&quot;I have a new GPU!&quot;</span>
+<span class="n">tokenizer</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">inp_str</span><span class="p">)</span>
+
+<span class="c1"># [&#39;i&#39;, &#39;have&#39;, &#39;a&#39;, &#39;new&#39;, &#39;gp&#39;, &#39;##u&#39;, &#39;!&#39;] =&gt; len= 7</span>
+
+<span class="c1"># Huggingface&#39;s tokenizers&#39; .encode() method tends to add a special start and end tokens</span>
+
+<span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">inp_str</span><span class="p">)</span>
+<span class="c1"># each number here represents the index of each token in the tokenizer&#39;s entire vocabulary</span>
+<span class="c1"># [101, 1045, 2031, 1037, 2047, 14246, 2226, 999, 102] =&gt; len= 9 (7+2)</span>
+
+<span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">([</span><span class="mi">101</span><span class="p">,</span> <span class="mi">1045</span><span class="p">,</span> <span class="mi">2031</span><span class="p">,</span> <span class="mi">1037</span><span class="p">,</span> <span class="mi">2047</span><span class="p">,</span> <span class="mi">14246</span><span class="p">,</span> <span class="mi">2226</span><span class="p">,</span> <span class="mi">999</span><span class="p">,</span> <span class="mi">102</span><span class="p">])</span>
+
+<span class="c1"># &#39;[CLS] i have a new gpu! [SEP]&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CLS -&gt; Special CLASSIFY token usually added to the beginning of a sequence</span>
+<span class="sd">In HF tokenizers, this is usually 101</span>
+
+<span class="sd">SEP -&gt; separator token, usually added at the end of a sequence</span>
+<span class="sd">In HF tokenizers, this is usually 102</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div>
+<p>There are several popular tokenization schemes: the original Attention paper doesn't actually describe what tokenizing scheme it used, but it is commonly believed they used <a href="https://en.wikipedia.org/wiki/Byte_pair_encoding">byte pair encoding (BPE)</a>. The GPT family of models also use some variation of BPE, see for example <a href="https://github.com/openai/tiktoken">tiktoken</a>, which does BPE at a byte level. Doing BPE at a byte level (as opposed to the more classic Unicode word/character level tokenization) means you don't really have the "out of vocabulary" problem when you move from one modality to another.</p>
+<p>Other popular tokenization methods are <a href="https://huggingface.co/learn/nlp-course/en/chapter6/6">WordPiece</a> (which is used in the BERT paper), and <a href="https://github.com/google/sentencepiece">SentencePiece</a> which can be used to tokenize multiple languages including non-Latin languages (which <a href="https://arxiv.org/pdf/1910.10683">Google's T5</a> uses).</p>
+<p>Depending on your use case, you can also implement your own tokenization scheme! Before the transformers paper for example, a briefly popular paper was the <a href="https://arxiv.org/pdf/1610.10099">ByteNet paper</a> that did precisely this and implemented a character-level tokenization scheme. </p>
+<h2 id="embedding">Embedding<a class="headerlink" href="#embedding" title="Permanent link">&para;</a></h2>
+<p>What happens after tokenziation? In the Huggingface transformer's library, after tokenisation, you get a sequence of <span class="arithmatex">\(N\)</span> tokens, each of which is an integer that represents the index in the tokeniser's vocabulary. </p>
+<p>What we then want to do is convert each of these integers into a vector <span class="arithmatex">\(\in \mathbb{R}^D\)</span> where <span class="arithmatex">\(D\)</span> is some embedding dimension that is smaller than the size of the vocabulary in the tokenizer. This means that the sequence of integers would be converted into a sequence of vectors, i.e. a matrix.</p>
+<p>The way this is done in most architectures is through a simple look up table. If the size of the tokenizer's vocabulary is <span class="arithmatex">\(N_{\text{vocab}}\)</span> all we need is a <span class="arithmatex">\(N_{\text{vocab}} \times D\)</span> matrix, where row <span class="arithmatex">\(i\)</span> corresponds to the <span class="arithmatex">\(D\)</span> dimensional representation of token index <span class="arithmatex">\(i\)</span>. This <span class="arithmatex">\(N_{\text{vocab}} \times D\)</span> matrix is <em>learnable</em>. </p>
+<p>Let's see how it happens in code:</p>
+<p>Let's have a look at the inputs and outputs of <code>torch</code>'s <code>nn.Embedding</code> :
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="n">embedding_dim</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">vocab_size</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">embedding_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="p">)</span>
+
+<span class="c1"># toy example - how would a sequence of ones [1., 1., ...] be embedded?</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">embedding_layer</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">6</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+<span class="n">out</span>
+</code></pre></div>
+prints the following:
+<div class="highlight"><pre><span></span><code>tensor([
+        [-0.8257, 0.0528, 1.3637],
+        [-0.8257, 0.0528, 1.3637],
+        [-0.8257, 0.0528, 1.3637],
+        [-0.8257, 0.0528, 1.3637],
+        [-0.8257, 0.0528, 1.3637],
+        [-0.8257, 0.0528, 1.3637]],
+        grad_fn=&lt;EmbeddingBackward0&gt;)
+</code></pre></div>
+a 6x1 matrix. If you want to dig further into the nature of the embedding layer, you can see the following:</p>
+<div class="highlight"><pre><span></span><code><span class="n">embedding_layer</span><span class="o">.</span><span class="n">weight</span>
+
+<span class="n">tensor</span><span class="p">([</span>
+    <span class="p">[</span> <span class="mf">0.2668</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0410</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5245</span><span class="p">],</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">0.8257</span><span class="p">,</span> <span class="mf">0.0528</span><span class="p">,</span> <span class="mf">1.3637</span><span class="p">],</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.7534</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4505</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0951</span><span class="p">],</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">0.6984</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.7775</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.3832</span><span class="p">],</span>
+    <span class="p">[</span> <span class="mf">2.5235</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.7539</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.1454</span><span class="p">]],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>The output of  <code>embedding_layer(torch.ones((6,), dtype=int))</code> is basically the 2nd row (index of 1) <code>[-0.8257, 0.0528, 1.3637]</code> repeated 6 times. So all the embedding layer <span class="arithmatex">\(N_{\text{vocab}} \times D\)</span> does is act as a look-up matrix.</p>
+<p>In pure python, the code for the embedding layer will be something as simple as:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">random</span> 
+
+<span class="k">class</span> <span class="nc">PurePythonEmbeddingLayer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="p">[[</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">embedding_dim</span><span class="p">)]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">)]</span>  <span class="c1"># &lt;- the trainable lookup!</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">inp</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="o">...</span>
+</code></pre></div>
+<p>From this simple building block, you can make things as complicated as you want. The <code>BertEmbeddings</code> class in the <code>transformers</code> library shows you that for transformers, you will need to encode the position information of the text as well among other things. </p>
+<h3 id="positional-embeddingencoding">Positional Embedding/Encoding<a class="headerlink" href="#positional-embeddingencoding" title="Permanent link">&para;</a></h3>
+<p>The original transformers paper also embeds the positional information into the input sequence to the self attention layers. What  does positional embeddings do?
+Imagine if we didn't have the positional embeddings. When the self-attention mechanism is presented in the next section, you'll realise that each token embedding is treated independently of its position in a sentence. We need a way to "inject" the fact that a token's position is important <em>before</em> the embeddings enter as input into the self attention mechanism, where they will be further projected into many more different kind of vectors in different spaces. </p>
+<p>A motivating example would be something like processing a sentence - <code>a person ate the fish</code>. This has a completely different meaning to another ordering of the words - <code>a fish ate the person</code> - the positions of the words <code>fish</code> and <code>person</code> change the meaning of the phrases, and we need a mechanism to preserve that.</p>
+<p>The way the original transformers paper did this was by using sinusoidal encodings. The scheme they use is something like </p>
+<div class="arithmatex">\[
+\text{PE}_{(pos, 2i)} = sin(\frac{pos}{10000^{\frac{2i}{d_\text{model}}}})
+\]</div>
+<p>for tokens in the even indexes of the hidden dimension, and</p>
+<div class="arithmatex">\[
+\text{PE}_{(pos, 2i + 1)} = cos(\frac{pos}{10000^{\frac{2i}{d_\text{model}}}})
+\]</div>
+<p>for tokens in the odd index of the hidden dimension. </p>
+<p>These encodings would then be <em>added</em> to the learned embeddings. </p>
+<p>In pure python code, this would look something like this</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">positional_encoding</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a sequence length, and a model embedding size, return a matrix</span>
+<span class="sd">    of seq_len x d_model encoding the positions</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        seq_len: number of tokens</span>
+<span class="sd">        d_model: dimensions of the input to the embedding vector</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a matrix of seq_len x d_model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_get_angle</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">d_i</span><span class="p">):</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="mi">10_000</span> <span class="o">**</span> <span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">d_i</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pos</span> <span class="o">/</span> <span class="n">denom</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_len</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d_model</span><span class="p">):</span>
+            <span class="n">_fn</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span> <span class="k">if</span> <span class="n">d_i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span>
+            <span class="n">angle</span> <span class="o">=</span> <span class="n">_get_angle</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">d_i</span><span class="p">)</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_fn</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out</span>
+</code></pre></div>
+<p>When you plot it for <code>seq_len = 10</code> and <code>d_model = 64</code> (just toy values), you will get something like </p>
+<p><img alt="positional_encoding_from_paper.png" src="../../../../images/positional_encoding_from_paper.png" />
+You can look at <a href="https://github.com/jalammar/jalammar.github.io/blob/master/notebookes/transformer/transformer_positional_encoding_graph.ipynb">Jay Alamar's code</a> to see how to do this in a vectorised manner. </p>
+<p>In the old tensor2tensor library, the way positional encoding was done was actually by <em>not</em> interleaving the sines and cosines, but instead by doing something like this instead:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">positional_encoding_concat</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a sequence length, and a model embedding size, return a matrix</span>
+<span class="sd">    of seq_len x d_model encoding the positions.</span>
+
+<span class="sd">    The difference this time is that you don&#39;t interleave the sines and the cosines</span>
+<span class="sd">    but follow the tensor2tensor style of just concatenating sines and cosines</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        seq_len: number of tokens</span>
+<span class="sd">        d_model: dimensions of the input to the embedding vector</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a matrix of seq_len x d_model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_get_angle</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">d_i</span><span class="p">):</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="mi">10_000</span> <span class="o">**</span> <span class="p">(</span><span class="n">d_i</span> <span class="o">/</span> <span class="p">(</span><span class="n">d_model</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pos</span> <span class="o">/</span> <span class="n">denom</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_len</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d_model</span><span class="o">//</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">angle</span> <span class="o">=</span> <span class="n">_get_angle</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">d_i</span><span class="p">)</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d_model</span><span class="o">//</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">angle</span> <span class="o">=</span> <span class="n">_get_angle</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">d_i</span><span class="p">)</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out</span>
+</code></pre></div>
+<p>for which you'd get the plot <img alt="positional_encoding_concat.png" src="../../../../images/positional_encoding_concat.png" />
+The main difference being in
+1. the <code>_get_angle</code> method
+2. the for loop where the values are being appended</p>
+<p>According to the <a href="https://www.tensorflow.org/text/tutorials/transformer#the_embedding_and_positional_encoding_layer">Tensorflow tutorial</a> on transformers, these 2 are functionally equivalent. You can see why - the main aim of positional encodings is to make sure that embeddings that are near each other have a "similar" positional encoding, while those far away have different positional encodings. The second implementation is easier to do in a vectorised manner.</p>
+<p>The advantage of positional encodings that use such a sinusoidal pattern is that it can generalise to sequence lengths not seen before during training, because it is a deterministic function with respect to the token's position in the input.</p>
+<p>So the final embedding layer that includes positional encoding will look something like: </p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">random</span> 
+
+<span class="k">class</span> <span class="nc">PurePythonEmbeddingLayer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="p">[[</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">embedding_dim</span><span class="p">)]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">)]</span>  <span class="c1"># &lt;- the trainable lookup!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span> <span class="o">=</span> <span class="n">embedding_dim</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">positional_encodings</span> <span class="o">=</span> <span class="n">positional_encoding_concat</span><span class="p">(</span><span class="n">seq_len</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">d_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+            <span class="n">token_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">inp</span><span class="p">]</span>
+            <span class="n">positional_encoding</span> <span class="o">=</span> <span class="n">positional_encodings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">_t</span> <span class="o">+</span> <span class="n">_p</span> <span class="k">for</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">token_embedding</span><span class="p">,</span> <span class="n">positional_encoding</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="o">...</span>
+</code></pre></div>
+<p>Why don't we just make the model learn how to embed position instead of hardcoding it? 
+The answer to that is, you can! The BERT paper, which basically takes the original transformer paper and scales it up immensely, does precisely this. The <code>positional_embedding</code> is just another learnable parameter in the BERT encoder, as opposed to the deterministic vector you see in the original transformer paper. This increases the number of parameters a model has.
+The disadvantage of a scheme like this is that at inference time, you cannot have sequence lengths that are longer than what the model has been trained at </p>
+<p>Other more sophisticated embedding schemes include <a href="https://blog.eleuther.ai/rotary-embeddings/">rotary positional embeddings</a> (RoPE). RoPE is what the later versions of the GPT class of models use. This will not be discussed in greater detail here. </p>
+<p>Now that you have the embeddings ready, we are finally in a position to explain how the self attention mechanisms works. </p>
+<h2 id="self-attention">Self-attention<a class="headerlink" href="#self-attention" title="Permanent link">&para;</a></h2>
+<h3 id="why-self-attention-why-not-just-use-fully-connected-layers">Why self-attention? Why not just use fully connected layers?<a class="headerlink" href="#why-self-attention-why-not-just-use-fully-connected-layers" title="Permanent link">&para;</a></h3>
+<p>The UDL book makes a very compelling argument, that will be reproduced in part here. </p>
+<p>Here's an example of an actual review from Amazon:</p>
+<div style="overflow-x: auto; white-space: pre-wrap;"> 
+<pre style="white-space: pre-wrap; word-wrap: break-word;">
+in 1989, I managed a crummy bicycle shop, "Full Cycle" in Boulder, Colorado. The Samples had just recorded this album and they played most nights, at "Tulagi's" - a bar on 13th street. They told me they had been so broke and hungry, that they lived on the free samples at the local supermarkets - thus, the name. i used to fix their bikes for free, and even feed them, but they won't remember. That Sean Kelly is a gifted songwriter and singer.
+</pre>
+</div>
+<p>There are immediately 3 observations you can make about using just fully connected layers:</p>
+<ol>
+<li>This is 83 word review, and roughly 110 tokens (remember - everything is in terms of token length!) worth of text. Imagine now that each token is represented by a vector of size 1024 (the embedding dimension <span class="arithmatex">\(\textbf{D}\)</span>). If you were to have a model consisting only of fully connected layers, each layer would contain <span class="arithmatex">\(N^2D^2\)</span>  parameters, and with <span class="arithmatex">\(k\)</span> such layers, you'd have <span class="arithmatex">\(kN^2D^2\)</span> such parameters. This is a lot of parameters.</li>
+<li>Each review on Amazon can have a variable number of inputs. How would you take that into account when designing a model consisting only of fully connected layers? You could technically just fix the upper bound of N to some arbitrarily large value, and fill the positions with no text with some arbitrary "pad" tokens, but this feels like an inefficient way of learning representations. </li>
+<li>Language is inherently ambiguous, and it is unclear from syntax alone what the semantic meaning of each token is. <ol>
+<li>In the example above, the word <code>That</code> in the last sentence doesn't specifically refer to any object or subject. </li>
+<li>This means that we want an architecture where there must be connections between word representations and that the strength of these connections should depend on the words themselves. </li>
+<li>Technically you could have fully connected layers that do the same thing. In such a case, you'd hope the superfluous weights go to zero, and all weights that connect neurons that belong to the same group of tokens to other such groups would all be the same during the learning process. But this is an incredibly inefficient way of learning. This is probably easier to see in the diagram below. <ol>
+<li>In the top part, you want all the lines of the same colour to be the same weight.</li>
+<li>In the second part, you see that it is also technically possible to do this with fully connected layers, but this adds a lot of parameters for training without adding any real value, because we know the constraints we would like them to fulfill. </li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<p><img alt="fully_connected_layer_vs_self_attention.png" src="../../../../images/fully_connected_layer_vs_self_attention.png" /></p>
+<h3 id="self-attention-block">Self attention block<a class="headerlink" href="#self-attention-block" title="Permanent link">&para;</a></h3>
+<p>We can now turn our attention to what the self attention block does. We will proceed from the outputs of the embedding layer as input to this block</p>
+<p>If we were to use a standard neural network, each <span class="arithmatex">\(D\times1\)</span> input would have a <em>linear</em> transformation applied to it, followed by a <em>non-linear</em> activation function (softmax, ReLU etc.) applied to it. We can represent the mapping of a standard neural network on an input <span class="arithmatex">\(\mathbf{x}\)</span> as </p>
+<div class="arithmatex">\[
+f(\mathbf{x}) = \text{someNonLinearFunction}(\mathbf{Ax + b})
+\]</div>
+<p>How is a self attention block different?
+The simplest way to think of a self attention block is in 2 steps.</p>
+<p>Assume an input of <span class="arithmatex">\(N\)</span> vectors <span class="arithmatex">\(x_1, x_2, .... x_N\)</span>, each of dimension <span class="arithmatex">\(D\)</span>. </p>
+<p>The first step in an a self-attention block is the following - for each of the <span class="arithmatex">\(N\)</span> vectors, a corresponding <em>value</em> is computed using the standard way - </p>
+<div class="arithmatex">\[
+\mathbf{v}_m = \mathbf{A}_v\mathbf{x}_m + \mathbf{b}_v
+\]</div>
+<p>where <span class="arithmatex">\(\mathbf{A} \in \mathbb{R}^{D\times D}, \mathbf{b} \in \mathbb{R}^{D}\)</span> , are shared across <em>all</em> input vectors. You can see this in the description section of the original transformers paper. </p>
+<p>The second step is then computing a <strong><em>weighted</em></strong> sum across this set of values <span class="arithmatex">\(\mathbf{v}_1,  ..., \mathbf{v}_N\)</span> for each <span class="arithmatex">\(i \in [1, N]\)</span>:</p>
+<p>$$
+\text{out}<em>i = \sum</em>{m=1}^{N}a(\mathbf{x}_m, \mathbf{x}_i)\mathbf{v}_m
+$$
+where <span class="arithmatex">\(a(\mathbf{x}_m, \mathbf{x}_i)\)</span> is the <em>attention</em> that the <span class="arithmatex">\(i^{th}\)</span> output pays to the <span class="arithmatex">\(m^{th}\)</span> input. A weighted sum means that for each <span class="arithmatex">\(i\)</span>, the sum <span class="arithmatex">\(\sum_{m=1}^{N}a(\mathbf{x}_m, \mathbf{x}_i) = 1\)</span> , and each of the weights <span class="arithmatex">\(a(\mathbf{x}_m, \mathbf{x}_i)\)</span> is non-negative.</p>
+<p>So what is the attention function? It's two inputs - the first is <span class="arithmatex">\(\mathbf{x}_m\)</span>, i.e. the <span class="arithmatex">\(m^{th}\)</span> input vector, whose corresponding value vector <span class="arithmatex">\(\mathbf{v}_m\)</span> is what the result of the attention computation will be multiplied with. The second is <span class="arithmatex">\(\mathbf{x}_i\)</span>, the <span class="arithmatex">\(i^{th}\)</span> input vector, where <span class="arithmatex">\(i\)</span> is also the position of the output vector we are trying to compute. We will need to compute 2 linear transformations first - the first being</p>
+<div class="arithmatex">\[
+\mathbf{q}_i = \mathbf{A}_q\mathbf{x}_i + \mathbf{b}_q
+\]</div>
+<p>which is called the <em>query</em> value, computed on the output's <span class="arithmatex">\(i^{th}\)</span> position. The second linear transformation is </p>
+<div class="arithmatex">\[
+\mathbf{k}_m = \mathbf{A}_k\mathbf{x}_m + \mathbf{b}_k
+\]</div>
+<p>which is called the <em>key</em> value, computed on the <span class="arithmatex">\(m^{th}\)</span> input vector. </p>
+<p>The attention function <span class="arithmatex">\(a(\mathbf{x}_m, \mathbf{x}_i)\)</span> will then be defined as:</p>
+<div class="arithmatex">\[
+a(\mathbf{x}_m, \mathbf{x}_i) \coloneqq \text{softmax}_m(\mathbf{k}^T_{\circ}\mathbf{q}_i) \\ = \frac{\text{exp}(\mathbf{k}^T_m\mathbf{q}_i)}{\sum_{j=1}^{N}\text{exp}(\mathbf{k}_j^T\mathbf{q}_i)}
+\]</div>
+<p>The following diagram from the UDL book is instructive to visualise the 2 different stages of calculating the </p>
+<p><img alt="alt text" src="../../../../images/transformers_as_routing.png" /></p>
+<p>All this seems pretty unintuitive - what is the correct "mental model" to have for the <em>key</em>, <em>query</em>, and <em>value</em> vectors we have just introduced? I'm going to modify the insight Eugene Yan's blog <a href="https://eugeneyan.com/writing/attention/">here</a> has on this - 
+1. Say you are in a library, and you want some knowledge. To get knowledge, you basically want the answers to N queries you have. 
+2. Now in the library, there are a lot of books. Each book has a spine with its title, which you can think of as its <em>key</em>, and each book has some content, which is it's <em>value</em>. 
+3. Now, <em>for each</em> query you have, you look at the spine of each book to decide how much <em>attention</em> should give to the contents of that book for that particular query, and you do it for all books present in the library.</p>
+<p>What does this all look like in code? You can look at the notebooks provided by the author of the UDL book for a clearer understanding, and I'm going to reproduce something very similar to the book here.</p>
+<p>For our toy example, let's assume the output of the embeddings are 3 input vectors <span class="arithmatex">\(\mathbf{x}_1, \mathbf{x}_2, \mathbf{x}_3\)</span> , each with dimension <span class="arithmatex">\(D = 4\)</span>.  </p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="c1"># Set seed so we get the same random numbers</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="c1"># Number of inputs</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="c1"># Number of dimensions of each input</span>
+<span class="n">D</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="n">all_x</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># Create elements x_n and append to list</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+  <span class="n">all_x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">)))</span>  <span class="c1"># &lt;- doesn&#39;t really matter for this toy example</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">all_x</span><span class="p">)</span>
+</code></pre></div>
+<p>Now, let's initialise the weights for <span class="arithmatex">\(A_q, A_k, A_v\)</span> and biases <span class="arithmatex">\(b_q, b_k, b_v\)</span>: </p>
+<div class="highlight"><pre><span></span><code><span class="c1"># all the weights are of dimension DxD </span>
+<span class="n">A_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="n">D</span><span class="p">))</span>
+<span class="n">A_k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="n">D</span><span class="p">))</span>
+<span class="n">A_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="n">D</span><span class="p">))</span>
+
+<span class="c1"># all the biases are of dimension Dx1</span>
+<span class="n">b_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">b_k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">b_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div>
+<p>We can now compute the keys, queries, and values for each of inputs:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Make three lists to store queries, keys, and values</span>
+<span class="n">all_queries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">all_keys</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">all_values</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># For every input</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_x</span><span class="p">:</span>
+  <span class="n">query</span> <span class="o">=</span> <span class="n">omega_q</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">beta_q</span>
+  <span class="n">key</span> <span class="o">=</span> <span class="n">omega_k</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">beta_k</span> 
+  <span class="n">value</span> <span class="o">=</span> <span class="n">omega_v</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">beta_v</span>
+
+  <span class="n">all_queries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+  <span class="n">all_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+  <span class="n">all_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+<p>Side note regarding multiplying numpy arrays - the <code>@</code> operator is a standard matrix multiplication operation, and requires 2 matrices of dimensions <span class="arithmatex">\(A \times B\)</span>,  and <span class="arithmatex">\(B \times C\)</span>, and will result in a <span class="arithmatex">\(A\times C\)</span> matrix. If you use a <code>*</code> operator instead, you can only do so if your matrix pair <span class="arithmatex">\(M_1, M_2\)</span> are either vectors or square matrices. </p>
+<p>We then need the softmax function:
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">softmax</span><span class="p">(</span><span class="n">items_in</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+  <span class="n">e_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">items_in</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">items_in</span><span class="p">))</span>
+  <span class="k">return</span> <span class="n">e_x</span> <span class="o">/</span> <span class="n">e_x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</code></pre></div>
+Subtracting the maximum value in the exponent is a common technique to make sure the values do not explode. Functionally they don't change the softmax function, since</p>
+<div class="arithmatex">\[
+\frac{e^{x_i}}{\sum^{N}_{i=1}{e^{x_i}}} = \frac{(\frac{1}{e^C})e^{x_i}}{(\frac{1}{e^C})\sum^{N}_{i=1}{e^{x_i}}} = \frac{e^{x_i - C}}{\sum^{N}_{i=1}{e^{x_i - C}}}
+\]</div>
+<p>For a pretty interesting discussion about why we use softmax, and the interpretation of this non-linear function, feel free to look at Pinecone's handy guide <a href="https://www.pinecone.io/learn/softmax-activation/">here</a>.  </p>
+<p>We are now in a position to compute each of the outputs. As a reminder, we are going to have <span class="arithmatex">\(N\)</span> output vectors <span class="arithmatex">\(\text{out}_1, \text{out}_2, \text{out}_3, ... \text{out}_N\)</span>, each of which is a weighted average of the value vectors. </p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Make three lists to store queries, keys, and values</span>
+<span class="n">all_queries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">all_keys</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">all_values</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># For every input</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_x</span><span class="p">:</span>
+  <span class="n">query</span> <span class="o">=</span> <span class="n">omega_q</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">beta_q</span>
+  <span class="n">key</span> <span class="o">=</span> <span class="n">omega_k</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">beta_k</span> 
+  <span class="n">value</span> <span class="o">=</span> <span class="n">omega_v</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">beta_v</span>
+
+  <span class="n">all_queries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+  <span class="n">all_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+  <span class="n">all_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<span class="c1"># compute the outs</span>
+<span class="n">all_outs</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">all_kj_qi</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># &lt;-- will be a 1 x N vector</span>
+    <span class="n">q_i</span> <span class="o">=</span> <span class="n">all_queries</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key_j</span> <span class="ow">in</span> <span class="n">all_keys</span><span class="p">:</span>
+        <span class="n">dot_product</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">key_j</span><span class="p">,</span> <span class="n">q_i</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">all_kj_qi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dot_product</span><span class="p">)</span>
+
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">all_kj_qi</span><span class="p">)</span> <span class="c1"># &lt;-- 1 x N vector that sums to 1</span>
+    <span class="n">out_i</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">attention</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">all_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
+    <span class="n">all_outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_i</span><span class="p">)</span>
+</code></pre></div>
+<p>And that is it! You have basically implemented the self-attention mechanism from scratch using just (mostly) raw python loops! If you want to involve more matrix operations, you can do it the following way: </p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">softmax_cols</span><span class="p">(</span><span class="n">data_in</span><span class="p">):</span>
+    <span class="c1"># Exponentiate all of the values</span>
+    <span class="n">_data_in</span> <span class="o">=</span> <span class="n">data_in</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data_in</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">exp_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">_data_in</span><span class="p">)</span>
+    <span class="c1"># Sum over columns</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">exp_values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Compute softmax</span>
+    <span class="n">softmax</span> <span class="o">=</span> <span class="n">exp_values</span> <span class="o">/</span> <span class="n">denom</span>
+    <span class="c1"># return the answer</span>
+    <span class="k">return</span> <span class="n">softmax</span>
+
+<span class="k">def</span> <span class="nf">self_attention</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">A_v</span><span class="p">,</span> <span class="n">A_q</span><span class="p">,</span> <span class="n">A_k</span><span class="p">,</span> <span class="n">b_v</span><span class="p">,</span> <span class="n">b_q</span><span class="p">,</span> <span class="n">b_k</span><span class="p">):</span>
+    <span class="c1"># 1. Compute queries, keys, and values</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">b_v</span> <span class="o">+</span> <span class="n">A_v</span> <span class="o">@</span> <span class="n">X</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">b_q</span> <span class="o">+</span> <span class="n">A_q</span> <span class="o">@</span> <span class="n">X</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">b_k</span> <span class="o">+</span> <span class="n">A_k</span> <span class="o">@</span> <span class="n">X</span>
+    <span class="c1"># 2. Compute dot products</span>
+    <span class="n">dot_pdts</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span>
+    <span class="c1"># 3. Apply softmax to calculate attentions</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">softmax_cols</span><span class="p">(</span><span class="n">dot_pdts</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">attention</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># &lt;-- This will now be a NxN matrix!</span>
+    <span class="c1"># 4. Weight values by attentions</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">V</span> <span class="o">@</span> <span class="n">attention</span>
+
+    <span class="k">return</span> <span class="n">out</span>
+</code></pre></div>
+<p>This function presents the famous self-attention equation:</p>
+<div class="arithmatex">\[
+\text{attentionOutput}(V, Q, K) = V\text{softmax}(K^TQ)
+\]</div>
+<p>more naturally. </p>
+<p>If you inspect the values of the <span class="arithmatex">\(N\times N\)</span> <code>attention</code> matrix, you'll notice the extreme values - some values are very close to 1, and many values are nearly 0. This is because the values of <span class="arithmatex">\(K^TQ\)</span> become either too big a positive value, or too big a negative value. </p>
+<p>We ideally want to scale the values in the attention such that the variance in the input values to the softmax function is reduced to avoid the vanishing gradient problem. A hand-wavy justification for this is the following:</p>
+<p>Weights in a neural network are updated using backpropagation (you can read up the details of this method elsewhere). Let the <span class="arithmatex">\(i^{th}\)</span> output of the softmax function be defined as <span class="arithmatex">\(p_i\)</span> where</p>
+<div class="arithmatex">\[
+p_i = \frac{e^{x_i}}{\sum^{N}_{i=1}{e^{x_i}}}
+\]</div>
+<p>Then, when we look at the gradients of this function, we can see that the partial derivative of <span class="arithmatex">\(p_i\)</span> with respect to <span class="arithmatex">\(x_i\)</span> is -</p>
+<div class="arithmatex">\[
+\frac{\partial p_i}{\partial x_i} = \frac{\partial}{x_i} \left( \frac{e^{x_i}}{e^{x_i}+ C} \right) = \frac{(e^{x_i} + C)e^{x_i} - e^{x_i}e^{x_i}}{(e^{x_i} + C)^2} = (\frac{e^{x_i}}{e^{x_i}+ C})(\frac{C}{e^{x_i}+ C}) = p_i(1 - p_i)
+\]</div>
+<p>where we use <span class="arithmatex">\(C\)</span> in that hand-wavy way non-mathematicians use to express terms that can be treated as a "constant" in a partial derivative. Then for <span class="arithmatex">\(j\neq i\)</span>, </p>
+<div class="arithmatex">\[
+\frac{\partial p_i}{\partial x_j} = \frac{\partial}{x_i}\left(\frac{C'}{e^{x_j}+ C}\right) = \frac{-C'e^{x_j}}{(e^{x_j}+ C)^2} = -p_jp_i
+\]</div>
+<p>The last characteristic you need to remember about the softmax is the following: </p>
+<div class="arithmatex">\[
+\sum_{i=1}^N p_i = 1
+\]</div>
+<p>So if any <span class="arithmatex">\(p_i\)</span> is very close to one, the partial derivatives will be <em>close to 0</em> because the other term (either <span class="arithmatex">\(1 - p_i\)</span> or <span class="arithmatex">\(p_j\)</span>) is going to be very close to 0. Naturally, the partial derivatives will also be close to 0 if any of the <span class="arithmatex">\(p_i\)</span>'s is close to 0. </p>
+<p>Scaling the inputs the softmax function is typically done by dividing the <span class="arithmatex">\(\mathbf{K^T}\mathbf{Q}\)</span> result with <span class="arithmatex">\(\sqrt{D_k}\)</span> , i.e. the dimension of the keys (and the dimension of the queries). Why this particular constant? This is explained in the paper. As the dimensions of the keys and the queries increase, it is likely that the final result of <span class="arithmatex">\(\mathbf{K^T}\mathbf{Q}\)</span> increases in value. Intuitively, this is because if <span class="arithmatex">\(q\)</span> and <span class="arithmatex">\(k\)</span> are independent random variables with 0 mean and 1 variance, the dot product <span class="arithmatex">\(q \cdot k = \sum_{i=1}^{d_k} q_ik_i\)</span> will have mean 0 and variance <span class="arithmatex">\(d_k\)</span>. 
+This is easy to derive from first principles, remembering that <span class="arithmatex">\(\text{Var}[x]) = \mathbb{E}[x^2] - (\mathbb{E}[x])^2\)</span> . The mean calculation of <span class="arithmatex">\(\mathbf{k}^T \cdot \mathbf{q}\)</span> is the following (with <span class="arithmatex">\(D\)</span> being the dimension of the key and the query)</p>
+<div class="arithmatex">\[
+\mathbb{E}[\mathbf{k}^T \cdot \mathbf{q}] = \mathbb{E}\left[ \sum_{i=1}^{D} k_iq_i \right] = \sum_{i=1}^D \mathbb{E}[q_ik_i]
+\]</div>
+<p>and since <span class="arithmatex">\(k_i, q_i\)</span> are independent, you have </p>
+<div class="arithmatex">\[
+\sum_{i=1}^D \mathbb{E}[q_ik_i] = \sum_{i=1}^D \mathbb{E}[q_i]\mathbb{E}[k_i] = 0
+\]</div>
+<p>As for variance we need to consider the following:  </p>
+<div class="arithmatex">\[
+\text{Var}[\mathbf{k}^T \cdot \mathbf{q}] = \mathbb{E}\left[(\mathbf{k}^T \cdot \mathbf{q})^2\right] - \left(\mathbb{E}[\mathbf{k}^T \cdot \mathbf{q}] \right)^2
+\]</div>
+<p>We only have to consider the first term of the right hand side, because as we've just established, <span class="arithmatex">\(\mathbb{E}[\mathbf{k}^T \cdot \mathbf{q}]=0\)</span>. Given that each of these variables have variance 1, this means that:</p>
+<div class="arithmatex">\[
+\text{Var}(k_i) = 1 =&gt; \mathbb{E}[k_i^2] - (\mathbb{E}[k_i])^2 = 1
+\]</div>
+<p>and since <span class="arithmatex">\(\mathbb{E}[k_i]=0\)</span>, we know <span class="arithmatex">\(\mathbb{E}[k_i^2] = 1\)</span>. The same holds for <span class="arithmatex">\(q_i\)</span>.</p>
+<p>So, it easily follows:</p>
+<div class="arithmatex">\[
+\text{Var}[\mathbf{k}^T \cdot \mathbf{q}] = \mathbb{E}\left[(\mathbf{k}^T \cdot \mathbf{q})^2\right] = \mathbb{E}\left[ \left( \sum_{i=1}^Dk_iq_i \right) \left( \sum_{j=1}^Dk_jq_j \right) \right] =\left[ \sum_{i=1}^D \sum_{j=1}^D  \mathbb{E}(q_iq_jk_ik_j)\right]
+\]</div>
+<p>and since the <span class="arithmatex">\(k\)</span>'s and the <span class="arithmatex">\(q\)</span>'s are independent:</p>
+<div class="arithmatex">\[
+\left[ \sum_{i=1}^D \sum_{j=1}^D  \mathbb{E}(q_iq_jk_ik_j)\right] = \left[ \sum_{i=1}^D \sum_{j=1}^D  \mathbb{E}(q_iq_j)\mathbb{E}(k_ik_j)\right]
+\]</div>
+<p>now, for cases where <span class="arithmatex">\(i \neq j\)</span>, you get <span class="arithmatex">\(\mathbb{E}(q_iq_j) = \mathbb{E}(q_i)\mathbb{E}(q_j) = 0\)</span>, and so you only have to care about the cases where <span class="arithmatex">\(i = j\)</span>. This then simplifies everything to: </p>
+<div class="arithmatex">\[
+ \left[ \sum_{i=1}^D \sum_{j=1}^D  \mathbb{E}(q_iq_j)\mathbb{E}(k_ik_j)\right] = \sum_{i=1}^D \mathbb{E}(q_i^2) \mathbb{E}(k_i^2) =\sum_{i=1}^D 1= D
+\]</div>
+<p>So to summarise this last part - the reason we scale everything by <span class="arithmatex">\(\sqrt{D_k}\)</span> is because under the assumption that <span class="arithmatex">\(k\)</span>'s and <span class="arithmatex">\(q\)</span>'s are independent variables with 0 mean and unit variance, this is the scaling factor we need to keep the variance of </p>
+<p>$$
+\mathbf{k}^T \cdot \mathbf{q}
+$$
+to 1, and the mean to be 0. </p>
+<p>The self attention block is the basic unit of the transformer, and its details are often not appreciated. Hopefully, this post has given you a better intuition for it by decomposing every step into its most basic form.  </p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.sections"], "search": "../../../../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+        <script src="../../../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
