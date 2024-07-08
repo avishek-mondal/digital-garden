@@ -22,7 +22,7 @@ The original transformer paper [here](https://arxiv.org/pdf/1706.03762.pdf) is a
 Before we get to the famous equation -
 
 $$
-\text{selfAttention}[X] = V[X]\text{softmax}(\frac{K^TQ}{\sqrt{D_q}})
+\text{selfAttention}[X] = V[X]\text{softmax}(\frac{QK^T}{\sqrt{D_q}})
 $$
 
 let's see what the steps often are *before* a matrix/tensor gets to the self-attention mechanism. 
@@ -380,6 +380,31 @@ All this seems pretty unintuitive - what is the correct "mental model" to have f
 2. Now in the library, there are a lot of books. Each book has a spine with its title, which you can think of as its *key*, and each book has some content, which is it's *value*. 
 3. Now, *for each* query you have, you look at the spine of each book to decide how much *attention* should give to the contents of that book for that particular query, and you do it for all books present in the library.
 
+Keys and values tend to be computed on the same input matrices, but *query* values are often computed on other input matrices (it is called *self-attention* when all these operations are on the same inputs). As an example of these operations being applied to different inputs, you have to look no further than the "Attention is all you need" paper, particularly this diagram: 
+
+![[Pasted image 20240708103846.png]]
+
+In the decoder, at the point in the model where the decoder takes into account the encoder outputs as well, the key and values will be computed as:
+
+$$
+K = A_kX_{\text{enc}} + B_k
+$$
+
+$$
+V = A_vX_{\text{enc}} + B_v
+$$
+
+while the queries will be on the decoder representation of the outputs:
+
+$$
+Q = A_qX_{\text{dec}} + B_q
+$$
+
+where $X_{\text{enc}}, X_{\text{dec}}$ are the matrices as illustrated in the diagram above - $X_{\text{enc}}$ being the encoder 
+output, and $X_{\text{dec}}$ being the decoder representation of the output embedding at that layer (assume column first ordering for this series of equations). 
+
+This is sometimes called *cross-attention*, and if you inspect the Huggingface code, you will see this term cropping up. Let's focus just on self-attention again.
+
 What does this all look like in code? You can look at the notebooks provided by the author of the UDL book for a clearer understanding, and I'm going to reproduce something very similar to the book here.
 
 For our toy example, let's assume the output of the embeddings are 3 input vectors $\mathbf{x}_1, \mathbf{x}_2, \mathbf{x}_3$ , each with dimension $D = 4$.  
@@ -475,7 +500,7 @@ for i in range(N):
 	all_kj_qi = [] # <-- will be a 1 x N vector
 	q_i = all_queries[i]
 	for key_j in all_keys:
-		dot_product = np.dot(key_j, q_i).squeeze()
+		dot_product = np.dot(key_j.T, q_i).squeeze()
 		all_kj_qi.append(dot_product)
 
 	attention = softmax(all_kj_qi) # <-- 1 x N vector that sums to 1
@@ -488,40 +513,59 @@ And that is it! You have basically implemented the self-attention mechanism from
 ```python
 def softmax_cols(data_in):
     # Exponentiate all of the values
-    _data_in = data_in - np.max(data_in, axis=0)
+    _data_in = data_in - np.max(data_in, axis=1, keepdims=True)
     exp_values = np.exp(_data_in)
-    # Sum over columns
-    denom = np.sum(exp_values, axis=0)
+    # Sum over rows
+    denom = np.sum(exp_values, axis=1, keepdims=True)
     # Compute softmax
     softmax = exp_values / denom
     # return the answer
     return softmax
 
 def self_attention(X, A_v, A_q, A_k, b_v, b_q, b_k):
+    """Self attention in a vectorized manner
+
+    Assumption here is that each column of X is a data point. In literature, each data point is usually a row, and not a column. Doesn't change the main thrust of this function
+    
+    Args:
+        X: X is a DxN matrix, where D is the dimension of the input vectors, and N is the number of input vectors
+        A_v: A_v is a DxD matrix
+        A_q: A_q is a DxD matrix
+        A_k: A_k is a DxD matrix
+        b_v: b_v is a Dx1 vector
+        b_q: b_q is a Dx1 vector
+        b_k: b_k is a Dx1 vector
+
+    Returns:
+        a DxN matrix, where each column is the output of the self attention mechanism
+    """
     # 1. Compute queries, keys, and values
-    V = b_v + A_v @ X
-    Q = b_q + A_q @ X
-    K = b_k + A_k @ X
+	Q = X @ A_q.T + b_q.T
+	K = X @ A_k.T + b_k.T
+	V = X @ A_v.T + b_v.T
     # 2. Compute dot products
-    dot_pdts = K.T @ Q
+    dot_pdts = Q @ K.T
     # 3. Apply softmax to calculate attentions
     attention = softmax_cols(dot_pdts)
     print(attention.shape) # <-- This will now be a NxN matrix!
     # 4. Weight values by attentions
-    out = V @ attention
+    out = attention @ V
     
     return out
+
+X = np.array(all_x).squeeze()
+out = self_attention(X, A_v, A_q, A_k, b_v, b_q, b_k)
 ```
 
 This function presents the famous self-attention equation:
 
 $$
-\text{attentionOutput}(V, Q, K) = V\text{softmax}(K^TQ)
+\text{attentionOutput}(V, Q, K) = V\text{softmax}(QK^T)
 $$
 
 more naturally. 
 
-If you inspect the values of the $N\times N$ `attention` matrix, you'll notice the extreme values - some values are very close to 1, and many values are nearly 0. This is because there is a large variance in the values of $K^TQ$ - they become either too big a positive value, or too big a negative value. 
+If you inspect the values of the $N\times N$ `attention` matrix, you'll notice the extreme values - some values are very close to 1, and many values are nearly 0. This is because there is a large variance in the values of $QK^T$ - they become either too big a positive value, or too big a negative value. 
 
 We ideally want to scale the values in the attention such that the variance in the input values to the softmax function is reduced to avoid the vanishing gradient problem. A hand-wavy justification for this is the following:
 
@@ -552,7 +596,7 @@ $$
 
 So if any $p_i$ is very close to one, the partial derivatives will be *close to 0* because the other term (either $1 - p_i$ or $p_j$) is going to be very close to 0. Naturally, the partial derivatives will also be close to 0 if any of the $p_i$'s is close to 0. 
 
-Scaling the inputs the softmax function is typically done by dividing the $\mathbf{K^T}\mathbf{Q}$ result with $\sqrt{D_k}$ , i.e. the dimension of the keys (and the dimension of the queries). Why this particular constant? This is explained in the paper. As the dimensions of the keys and the queries increase, it is likely that the final result of $\mathbf{K^T}\mathbf{Q}$ increases in value. Intuitively, this is because if $q$ and $k$ are independent random variables with 0 mean and 1 variance, the dot product $q \cdot k = \sum_{i=1}^{d_k} q_ik_i$ will have mean 0 and variance $d_k$. 
+Scaling the inputs the softmax function is typically done by dividing the $\mathbf{Q}\mathbf{K^T}$ result with $\sqrt{D_k}$ , i.e. the dimension of the keys (and the dimension of the queries). Why this particular constant? This is explained in the paper. As the dimensions of the keys and the queries increase, it is likely that the final result of $\mathbf{Q}\mathbf{K^T}$ increases in value. Intuitively, this is because if $q$ and $k$ are independent random variables with 0 mean and 1 variance, the dot product $q \cdot k = \sum_{i=1}^{d_k} q_ik_i$ will have mean 0 and variance $d_k$. 
 This is easy to derive from first principles, remembering that $\text{Var}[x]) = \mathbb{E}[x^2] - (\mathbb{E}[x])^2$ . The mean calculation of $\mathbf{k}^T \cdot \mathbf{q}$ is the following (with $D$ being the dimension of the key and the query)
 
 $$
