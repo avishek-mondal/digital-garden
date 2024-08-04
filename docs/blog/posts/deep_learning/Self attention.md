@@ -126,7 +126,7 @@ tensor([
 		[-0.8257, 0.0528, 1.3637]],
 		grad_fn=<EmbeddingBackward0>)
 ```
-a 6x1 matrix. If you want to dig further into the nature of the embedding layer, you can see the following:
+a 6x3 matrix. If you want to dig further into the nature of the embedding layer, you can see the following:
 
 ```python
 embedding_layer.weight
@@ -216,7 +216,21 @@ def positional_encoding(seq_len: int, d_model: int) -> list[list[float]]:
 When you plot it for `seq_len = 10` and `d_model = 64` (just toy values), you will get something like 
 
 ![[positional_encoding_from_paper.png]]
-You can look at [Jay Alamar's code](https://github.com/jalammar/jalammar.github.io/blob/master/notebookes/transformer/transformer_positional_encoding_graph.ipynb) to see how to do this in a vectorised manner. 
+You can look at [Jay Alamar's code](https://github.com/jalammar/jalammar.github.io/blob/master/notebookes/transformer/transformer_positional_encoding_graph.ipynb) to see how to do this in a vectorised manner, which I have reimplemented here in numpy: 
+
+```python
+def sinusoidal_encodings(pos, dim, base=10000):
+    """Interleaved sinusoidal position embeddings.
+    
+    Like in the original transformer paper - interleaved sin and cos.
+    """
+    indices = np.arange(0, dim // 2)
+    power_term = np.power(base, -2 * indices / dim)
+    angle = np.einsum("...,d->...d", pos, power_term)
+    encodings = np.stack([np.sin(angle), np.cos(angle)], axis=-1)
+    encodings = encodings.reshape(list(encodings.shape[:-2]) + [-1])
+    return encodings
+```
 
 In the old tensor2tensor library, the way positional encoding was done was actually by *not* interleaving the sines and cosines, but instead by doing something like this instead:
 

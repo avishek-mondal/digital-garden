@@ -1,0 +1,1385 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://avishek-mondal.github.io/digital-garden/blog/2024/07/02/rope-embeddings/">
+      
+      
+        <link rel="prev" href="../../../06/13/masking-in-transformers/">
+      
+      
+      
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../../../../feed_rss_created.xml">
+        <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../../../../feed_rss_updated.xml">
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.29">
+    
+    
+      
+        <title>RoPE embeddings - mondalogue</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.76a95c52.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../css/custom.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sinusoidal-embeddings-from-transformers-paper" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="mondalogue" class="md-header__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            mondalogue
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              RoPE embeddings
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="mondalogue" class="md-nav__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    mondalogue
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Blog
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Blog
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hello!
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Archive
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2024/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2024
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Categories
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Categories
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sinusoidal-embeddings-from-transformers-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sinusoidal embeddings from transformers paper
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sinusoidal embeddings from transformers paper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-are-the-limitations-of-of-the-sinusoidal-scheme-proposed-in-the-original-transformers-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      What are the limitations of of the sinusoidal scheme proposed in the original transformers paper?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#original-bert-embeddings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Original BERT embeddings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Original BERT embeddings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bert-positional-embeddings-in-the-huggingface-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      BERT positional embeddings in the HuggingFace library
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rope-embeddings" class="md-nav__link">
+    <span class="md-ellipsis">
+      RoPE embeddings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RoPE embeddings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      Background
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-are-rope-embeddings" class="md-nav__link">
+    <span class="md-ellipsis">
+      What are RoPE embeddings?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation-in-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation in practice
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                        <time datetime="2024-07-02 00:00:00" class="md-ellipsis">July 2, 2024</time>
+                      </div>
+                    </li>
+                    
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7h1.5Z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              19 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+
+
+  <h1>RoPE embeddings</h1>
+
+<p>Rotary positional embeddings (RoPE) is yet another tool you can use to improve the performance of your BERT based models.</p>
+<p>For a description of what embeddings are, and how they get used in attention/transformers, feel free to take a look at a previous post - <a href="../../../01/05/self-attention/#embedding">Self attention#Embedding</a> - for more information. The main point of an embedding module is to serve as a lookup table, mapping various kinds of integer ids - token ids, position ids etc. - into a vector space that will then get used in the attention mechanism.</p>
+<p>While <em>token</em> embeddings are one part of the puzzle, it is also important to inject the notion of a token's position in a sequence in the inputs to the attention mechanism. This injection is the subject of various methods in <em>positional</em> embeddings/encodings. </p>
+<!-- more -->
+
+<p>Here we'll go through the following - 
+1. Quickly recap the following:
+    1. The encoding scheme of proposed in the original transformers paper
+    2. The embedding schema in the original BERT model
+        1. How it is implemented in HuggingFace</p>
+<ol>
+<li>RoPE embeddings<ol>
+<li>Brief description behind wanting to use relative positional information</li>
+<li>How it is implemented in code</li>
+</ol>
+</li>
+</ol>
+<h2 id="sinusoidal-embeddings-from-transformers-paper">Sinusoidal embeddings from transformers paper<a class="headerlink" href="#sinusoidal-embeddings-from-transformers-paper" title="Permanent link">&para;</a></h2>
+<p>As a recap the positional encoding in the original transformers paper was:</p>
+<div class="arithmatex">\[
+\text{PE}_{(pos, 2i)} = \text{sin}(\text{pos} \times \theta_{i})
+\]</div>
+<div class="arithmatex">\[
+\text{PE}_{(pos, 2i + 1)} = \text{cos}(\text{pos} \times \theta_{i})
+\]</div>
+<p>where </p>
+<div class="arithmatex">\[
+\theta_{i} = 10,000^{\frac{-2i}{d}}
+\]</div>
+<p>and <span class="arithmatex">\(d\)</span> is the dimension of the vector. </p>
+<p>To visualise these quantities, let's plot some of them and how they vary. Let's start with <span class="arithmatex">\(\theta_i\)</span> and how it varies with <span class="arithmatex">\(i \in [0, d]\)</span>, with <span class="arithmatex">\(d=64\)</span>.   </p>
+<details>
+<summary>Plotting code</summary>
+
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+
+<span class="n">dim</span> <span class="o">=</span> <span class="mi">64</span>
+
+<span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">base</span> <span class="o">=</span> <span class="mi">10_000</span>
+<span class="n">power_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">indices</span> <span class="o">/</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\mathrm{\theta_i = 10000^{-\frac</span><span class="si">{2i}{d}</span><span class="s1">}}$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">power_term</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+</details>
+
+<p><img alt="Pasted image 20240730183240.png" src="../../../../images/Pasted%20image%2020240730183240.png" /></p>
+<p>Now, let's see how <span class="arithmatex">\(\sin(m\theta_i)\)</span> varies for different values of <span class="arithmatex">\(m\)</span>, restricting ourselves to <span class="arithmatex">\(m=100\)</span>. Recall that <span class="arithmatex">\(m\)</span> here represents the positions of tokens. </p>
+<details>
+<summary>Plotting code </summary>
+<div class="highlight"><pre><span></span><code><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Sine term for different values of m&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">m_values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">99</span><span class="p">]</span>  <span class="c1"># Different values of m for each subplot</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axs</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">m_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">power_term</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;m = </span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\mathrm{\sin(m \times 10000^{-\frac</span><span class="si">{2i}{d}</span><span class="s1">})}$&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+</details>
+
+<p><img alt="Pasted image 20240731120421.png" src="../../../../images/Pasted%20image%2020240731120421.png" />
+Each subplot here represents a data input, and for each subplot, the x-axis represents the <span class="arithmatex">\(i^{th}\)</span> position of the <span class="arithmatex">\(d\)</span> dimensional vector in position <span class="arithmatex">\(m\)</span>. I show these plots because it is not intuitive what the shape of a sinusoid of a exponential term would be. </p>
+<p>With this intuition, let us see a 2D plot of this encoding scheme, using  <code>seq_len = 10</code> and <code>dim=64</code>. </p>
+<details>
+<summary>Plotting code</summary>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">sinusoidal_embeddings</span><span class="p">(</span><span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interleaved sinusoidal position embeddings.</span>
+
+<span class="sd">    Like in the original transformer paper - interleaved sin and cos.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">power_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">indices</span> <span class="o">/</span> <span class="n">dim</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;...,d-&gt;...d&quot;</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">power_term</span><span class="p">)</span>
+    <span class="n">embeddings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">embeddings</span> <span class="o">=</span> <span class="n">embeddings</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">embeddings</span>
+
+<span class="n">seq_len</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">seq_len</span><span class="p">)</span>
+<span class="n">embeddings</span> <span class="o">=</span> <span class="n">sinusoidal_embeddings</span><span class="p">(</span><span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Embedding Dimensions&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Token position&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+</details>
+
+<p><img alt="Pasted image 20240731131522.png" src="../../../../images/Pasted%20image%2020240731131522.png" /></p>
+<p>Each row represents the encoding that will be added to the embedding of a token.</p>
+<p>But even this plot is not useful in visualising how this "helps" in injecting position information into the inputs. One visualisation that may help is by looking at the Euclidean distance of each of the vectors to a vector at a particular position index. Let's expand the <code>seq_len</code> to a longer 100 sequence.</p>
+<details><summary>Plotting Code</summary>
+<div class="highlight"><pre><span></span><code><span class="n">seq_len</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">seq_len</span><span class="p">)</span>
+<span class="n">embeddings</span> <span class="o">=</span> <span class="n">sinusoidal_embeddings</span><span class="p">(</span><span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Euclidean of all vectors to a vector at a particular position&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">vector_idxes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">75</span><span class="p">]</span>  <span class="c1"># different position for each subplot</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axs</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">vector_idxes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">embeddings</span> <span class="o">-</span> <span class="n">embeddings</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">distances</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">distances</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Distance of Vectors to the </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">th Vector&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Vector Index&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Euclidean Distance&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+</details>
+
+<p><img alt="Pasted image 20240731133350.png" src="../../../../images/Pasted%20image%2020240731133350.png" /></p>
+<p>Here you can see that these graphs have a "V" shape - for a given vector, vectors that are close to it positionally <em>generally</em> have a smaller Euclidean distance than those that are further away positionally. </p>
+<p>You can also look at the "frequency" of the sinusoids at each <span class="arithmatex">\(i\)</span> as <span class="arithmatex">\(m\)</span> varies:</p>
+<details><summary>Plotting Code</summary>
+<div class="highlight"><pre><span></span><code><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Frequency variation for each i as m varies&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">dim_idxes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>  <span class="c1"># Different values of m for each subplot</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axs</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
+    <span class="n">dim_idx</span> <span class="o">=</span> <span class="n">dim_idxes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">embeddings</span><span class="p">[:,</span> <span class="n">dim_idx</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;i = </span><span class="si">{</span><span class="n">dim_idx</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\mathrm{\theta_i = 10000^{-\frac</span><span class="si">{2i}{d}</span><span class="s1">}}$&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+</details>
+
+<p><img alt="Pasted image 20240731143104.png" src="../../../../images/Pasted%20image%2020240731143104.png" /></p>
+<p>This makes sense because the frequency of the sinusoid is <span class="arithmatex">\(\theta_i\)</span> which is the highest value for when <span class="arithmatex">\(i\)</span> is smaller, and smallest when <span class="arithmatex">\(i\)</span> is larger. </p>
+<h3 id="what-are-the-limitations-of-of-the-sinusoidal-scheme-proposed-in-the-original-transformers-paper">What are the limitations of of the sinusoidal scheme proposed in the original transformers paper?<a class="headerlink" href="#what-are-the-limitations-of-of-the-sinusoidal-scheme-proposed-in-the-original-transformers-paper" title="Permanent link">&para;</a></h3>
+<p>The most obvious issues are as listed:
+1. The main problem with the scheme presented above is that everything is fixed. None of the components - the variation in the frequency range, the sinusoidal function itself etc. - gets updated during training. 
+2. The different sinusoids, while expressive, may not be the correct kind of expressive for all sequences and may not be capturing the complex positional relationships in the data.
+3. For longer sequence lengths, you can see that the difference blurs for vectors that are further away. </p>
+<h2 id="original-bert-embeddings">Original BERT embeddings<a class="headerlink" href="#original-bert-embeddings" title="Permanent link">&para;</a></h2>
+<p>The <a href="https://arxiv.org/pdf/1810.04805">BERT paper</a> uses learned positional embeddings (though the paper doesn't explicitly state it). The main idea is this - instead of using <em>predefined sinusoids</em> the paper defers the learning of how best to deal with a token's position to the model itself, so that the learns this in conjunction with the other weights. </p>
+<p>Yet another embedding layer is defined, and instead of serving as a look up table for token ids to <span class="arithmatex">\(d\)</span> dimensional vectors, this embedding layer serves as a look up table for <em>a token's position in the sequence</em> to a <span class="arithmatex">\(d\)</span> dimensional vector.</p>
+<p>That is it, there's nothing more complicated. Let's quickly look at how the HuggingFace library does it.</p>
+<h3 id="bert-positional-embeddings-in-the-huggingface-library">BERT positional embeddings in the HuggingFace library<a class="headerlink" href="#bert-positional-embeddings-in-the-huggingface-library" title="Permanent link">&para;</a></h3>
+<p>Let's start with the <code>BertEmbeddings</code> class to see what happens.
+In the <code>BertEmbeddings</code> class, the <code>self.position_ids</code> is basically a 1 dimensional tensor that goes from <code>0</code> to <code>max_tokens - 1</code>. In the default case, <code>max_tokens</code> is 512, so <code>self.position_ids</code> is a <span class="arithmatex">\(1 \times 512\)</span>  <code>tensor([[ 0, 1, 2, 3, ... 511]])</code> (in code, this happens <a href="https://gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci80M2JhZGYyMTdkMWNjZmFmNDg2ZTJjYmIxYjM1NjcyMjZiNWU5NWJmL2Yvc3JjL3RyYW5zZm9ybWVycy9tb2RlbHMvYmVydC9tb2RlbGluZ19iZXJ0LnB5P3VybD1odHRwcyUzQSUyRiUyRmdpdGh1Yi5jb20lMkZodWdnaW5nZmFjZSUyRnRyYW5zZm9ybWVycy5naXQ%3D?origin=gitlens">here</a>). Remember that for BERT, the number of input tokens is fixed, and shorter token sequences are padded. 
+In the <code>forward</code> method of <code>BertEmbeddings</code>, you can see that this tensor is then passed through a <code>torch.nn.Embedding</code> module, which is nothing more than a look up table casting ints to vectors: </p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">BertEmbeddings</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">word_embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">padding_idx</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pad_token_id</span><span class="p">)</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position_embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">max_position_embeddings</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">)</span>
+
+        <span class="c1"># same as self.position_ids = torch.arange(config.max_position_embeddings).expand((1, -1))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span>
+            <span class="s2">&quot;position_ids&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">max_position_embeddings</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">persistent</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="n">inputs_embeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">word_embeddings</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+        <span class="o">...</span>
+        <span class="n">position_embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_embeddings</span><span class="p">(</span><span class="n">position_ids</span><span class="p">)</span>
+
+        <span class="n">embeddings</span> <span class="o">+=</span> <span class="n">position_embeddings</span>  <span class="c1"># &lt;- main line here</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embeddings</span>
+</code></pre></div>
+<p>That is basically how embedding is done in <code>BertEmbeddings</code>. 
+As an aside, let's also quickly look at how the output of this module is used. Looking at the <code>forward</code> method of the <code>BertModel</code> in Huggingface, you'll see that these embedding outputs become the <code>hidden_state</code>:</p>
+<p>In <code>BertModel</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">token_type_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">head_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">inputs_embeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">encoder_hidden_states</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">encoder_attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">past_key_values</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_attentions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_hidden_states</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">BaseModelOutputWithPoolingAndCrossAttentions</span><span class="p">]:</span>
+        <span class="o">...</span>
+        <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span>
+                <span class="n">embedding_output</span><span class="p">,</span>  <span class="c1"># &lt;- this is &quot;hidden_state&quot; for the encoder</span>
+                <span class="n">attention_mask</span><span class="o">=</span><span class="n">extended_attention_mask</span><span class="p">,</span>
+                <span class="n">head_mask</span><span class="o">=</span><span class="n">head_mask</span><span class="p">,</span>
+                <span class="n">encoder_hidden_states</span><span class="o">=</span><span class="n">encoder_hidden_states</span><span class="p">,</span>
+                <span class="n">encoder_attention_mask</span><span class="o">=</span><span class="n">encoder_extended_attention_mask</span><span class="p">,</span>
+                <span class="n">past_key_values</span><span class="o">=</span><span class="n">past_key_values</span><span class="p">,</span>
+                <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                <span class="n">output_attentions</span><span class="o">=</span><span class="n">output_attentions</span><span class="p">,</span>
+                <span class="n">output_hidden_states</span><span class="o">=</span><span class="n">output_hidden_states</span><span class="p">,</span>
+                <span class="n">return_dict</span><span class="o">=</span><span class="n">return_dict</span><span class="p">,</span>
+        <span class="p">)</span>
+</code></pre></div>
+<p>and then you go into the <code>BertEncoder</code>: 
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_states</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">head_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">encoder_hidden_states</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">encoder_attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">past_key_values</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_attentions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">output_hidden_states</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">BaseModelOutputWithPastAndCrossAttentions</span><span class="p">]:</span>
+        <span class="o">...</span>
+        <span class="n">layer_outputs</span> <span class="o">=</span> <span class="n">layer_module</span><span class="p">(</span>
+                <span class="n">hidden_states</span><span class="p">,</span>
+                <span class="n">attention_mask</span><span class="p">,</span>
+                <span class="n">layer_head_mask</span><span class="p">,</span>
+                <span class="n">encoder_hidden_states</span><span class="p">,</span>
+                <span class="n">encoder_attention_mask</span><span class="p">,</span>
+                <span class="n">past_key_value</span><span class="p">,</span>
+                <span class="n">output_attentions</span><span class="p">,</span>
+        <span class="p">)</span>
+</code></pre></div></p>
+<p>and now go all the way into the <code>BertSelfAttention</code> and investigate it line by line:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">BertSelfAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">position_embedding_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_head_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_head_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_head_size</span><span class="p">)</span>
+
+
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">hidden_states</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                <span class="n">attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">head_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">encoder_hidden_states</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">encoder_attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">past_key_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">output_attentions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+                <span class="n">mixed_query_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose_for_scores</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">))</span>
+                <span class="o">...</span>
+                <span class="n">key_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose_for_scores</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">))</span>
+                <span class="n">value_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose_for_scores</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">))</span>
+</code></pre></div>
+<h2 id="rope-embeddings">RoPE embeddings<a class="headerlink" href="#rope-embeddings" title="Permanent link">&para;</a></h2>
+<h3 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h3>
+<p>In the embedding/encoding schemes above, the model has to learn the absolute position embeddings. But this is often not very useful under the following circumstances:
+1. Often times when training on some datasets, shorter unrelated token sequences are stacked together and trained on together. Here absolute positional embeddings make no sense because the actual first token of a sentence would have some arbitrary positional information based on what came before it.
+2. Other times, long token sequences are broken up into shorter sequences before passing through the attention layers. In this scenario absolute positions don't correspond to the actual positions of the tokens in the original sequences.</p>
+<p>Also, there is another problem with simply adding embedding of absolute positions. In the standard attention mechanism, the dot product no longer cares about the positions of tokens, and the hope is that the model will learn the embeddings such that the dot product between tokens at different positions make sense with respect to the task at hand. </p>
+<p><img alt="Pasted image 20240715130105.png" src="../../../../images/Pasted%20image%2020240715130105.png" /></p>
+<p>For such cases, we want an embedding scheme that efficiently does some kind of relative positional embedding, and also explicitly "injects" this knowledge into the attention mechanism. What does relative positional embedding mean? We basically want a function <span class="arithmatex">\(f(\mathbf{x}, l)\)</span> that takes in as arguments an input token sequence <span class="arithmatex">\(\mathbf{x}\)</span> and its position <span class="arithmatex">\(l\)</span> such that the <em>dot product</em> between 2 vectors <span class="arithmatex">\(\mathbf{x}_1\)</span> and <span class="arithmatex">\(\mathbf{x}_2\)</span> in positions <span class="arithmatex">\(l_1\)</span> and <span class="arithmatex">\(l_2\)</span> is only sensitive to <span class="arithmatex">\(\mathbf{x}_1\)</span> and <span class="arithmatex">\(\mathbf{x}_2\)</span>, and the relative position <span class="arithmatex">\(l_1 - l_2\)</span>. </p>
+<p>There are many ways to do this, but the scheme that most of the field has settled on was first proposed in the <a href="https://arxiv.org/pdf/2104.09864">RoFormer paper</a>, which we talk about in the next section.</p>
+<h3 id="what-are-rope-embeddings">What are RoPE embeddings?<a class="headerlink" href="#what-are-rope-embeddings" title="Permanent link">&para;</a></h3>
+<p>The RoFormer paper and a <a href="https://blog.eleuther.ai/rotary-embeddings/">EleutherAI blogpost</a> that the paper mentions explain the intuition behind rotational positional embeddings in detail but contains a lot of detail that obfuscated the essence (the "<a href="https://blog.eleuther.ai/rotary-embeddings/#visual-intuition">Visual Intuition</a>" section of the blogpost continues to confuse me) for me.</p>
+<p>If you have found yourself on the same boat, below is hopefully a simpler and more practical explanation of it.</p>
+<p>The easiest way to to preserve the notion of some kind of "relative" distance between two token embeddings in the pre-softmax attention step, is to make use of the angle between them in their <span class="arithmatex">\(d\)</span> dimensional space. </p>
+<p>A cunning way to do so would be to multiply the token embedding in the <span class="arithmatex">\(m^{th}\)</span> position in the sequence by the following rotational matrix:</p>
+<div class="arithmatex">\[
+\mathbf{R}_{d, m} =
+\tiny{\begin{bmatrix}
+\cos(m\theta_1) &amp; - \sin(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+\sin(m\theta_1) &amp; \cos(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \cos(m\theta_2) &amp; - \sin(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \sin(m\theta_2) &amp; \cos(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+... \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(m\theta_{d/2}) &amp; - \sin(m\theta_{d/2}) \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \sin(m\theta_{d/2}) &amp; \cos(m\theta_{d/2}) \\
+\end{bmatrix}}
+\]</div>
+<p>where </p>
+<p>$$
+\theta_i = 10,000 ^{\frac{-2i}{d}}
+$$
+i.e. the original definition of the angle as in the transformer paper.</p>
+<p>So now, your key values become: </p>
+<div class="arithmatex">\[
+\mathbf{k}'_{m} = \mathbf{R}_{d, m}\mathbf{k}_{m}
+\]</div>
+<p>and your query values become </p>
+<div class="arithmatex">\[
+\mathbf{q}'_{n} = \mathbf{R}_{d, n}\mathbf{q}_{n}
+\]</div>
+<p>These are now inputs to your attention mechanism. To see why multiplying your keys and queries with this rotational matrix is cunning, let's see what happens when you take the dot product of a key vector in position <span class="arithmatex">\(m\)</span> and a query vector in position <span class="arithmatex">\(n\)</span> (as is usual in the attention mechanism):</p>
+<div class="arithmatex">\[
+\mathbf{k'}^{T}_{m}\mathbf{q'}_{n} = \mathbf{k}^T_{m}\mathbf{R}^T_{d, m}\mathbf{R}_{d, n}\mathbf{q}_{n}
+\]</div>
+<p>The quantity <span class="arithmatex">\(\mathbf{R}^T_{d, m}\mathbf{R}_{d, n}\)</span> is nothing but another rotation matrix! You can see the derivation pretty simply:</p>
+<div class="arithmatex">\[
+\mathbf{R}^T_{d, m}\mathbf{R}_{d, n} = 
+\]</div>
+<div class="arithmatex">\[
+\tiny{
+\begin{bmatrix}
+\cos(m\theta_1) &amp;  \sin(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+- \sin(m\theta_1) &amp; \cos(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \cos(m\theta_2) &amp;  \sin(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; -\sin(m\theta_2) &amp; \cos(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+... \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(m\theta_{d/2}) &amp;  \sin(m\theta_{d/2}) \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; -\sin(m\theta_{d/2}) &amp; \cos(m\theta_{d/2}) \\
+\end{bmatrix}
+\begin{bmatrix}
+\cos(n\theta_1) &amp; - \sin(n\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+\sin(n\theta_1) &amp; \cos(n\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \cos(n\theta_2) &amp; - \sin(n\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \sin(n\theta_2) &amp; \cos(n\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+... \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(n\theta_{d/2}) &amp; - \sin(n\theta_{d/2}) \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \sin(n\theta_{d/2}) &amp; \cos(n\theta_{d/2}) \\
+\end{bmatrix}
+}
+\]</div>
+<div class="arithmatex">\[
+= \tiny{\begin{bmatrix}
+\cos(m\theta_1)\cos(n\theta_1) + \sin(m\theta_1)\sin(n\theta_1) &amp;  -\cos(m\theta_1)\sin(n\theta_1) + \sin(m\theta_1)\cos(n\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+- \sin(m\theta_1)\cos(n\theta_1) + \cos(m\theta_1)\sin(n\theta_1) &amp; \cos(m\theta_1)\cos(n\theta_1) + \sin(m\theta_1)\sin(n\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; ... &amp;  ... &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; ... &amp; ... &amp; ...  &amp; 0 &amp; 0 \\
+... \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(m\theta_{d/2})\cos(n\theta_{d/2}) + \sin(m\theta_{d/2})\sin(n\theta_{d/2}) &amp;  -\cos(m\theta_{d/2})\sin(n\theta_{d/2}) + \sin(m\theta_{d/2})\cos(n\theta_{d/2})\\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; - \sin(m\theta_{d/2})\cos(n\theta_{d/2}) + \cos(m\theta_{d/2})\sin(n\theta_{d/2}) &amp; \cos(m\theta_{d/2})\cos(n\theta_{d/2}) + \sin(m\theta_{d/2})\sin(n\theta_{d/2})\\
+\end{bmatrix}
+}
+\]</div>
+<div class="arithmatex">\[
+= \tiny{\begin{bmatrix}
+\cos(n-m)\theta_1 &amp; - \sin(n-m)\theta_1 &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+\sin(n-m)\theta_1 &amp; \cos(n-m)\theta_1 &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \cos(n-m)\theta_2 &amp; - \sin(n-m)\theta_2 &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \sin(n-m)\theta_2 &amp; \cos(n-m)\theta_2 &amp; ...  &amp; 0 &amp; 0 \\
+... \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(n-m)\theta_{d/2} &amp; - \sin(n-m)\theta_{d/2} \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \sin(n-m)\theta_{d/2} &amp; \cos(n-m)\theta_{d/2} \\
+\end{bmatrix}
+}
+\]</div>
+<div class="arithmatex">\[
+= \mathbf{R}_{d, n-m}
+\]</div>
+<p>So we now basically have a way of "injecting" the relative distance between 2 tokens in a sequence into the attention mechanism! As with all transformer behaviours, it is not easy or well understood exactly how this leads to better training. But the common consensus in the field has been that this injection, and corresponding multiplicative and sinusoidal relationship between relative position and the learned weights, makes it "easier" for the model to learn sequences - a consensus that has been proved empirically over and over again.</p>
+<p>Now, let's see some basic plots of this. </p>
+<p>First, here's the code to generate <span class="arithmatex">\(\mathbf{R}_{d, m}\)</span> </p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_rot_matrix</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="c1"># same as </span>
+    <span class="c1"># indices = np.arange(0, dim // 2)</span>
+    <span class="c1"># base = 10_000</span>
+    <span class="c1"># theta = np.power(base, -2 * indices / dim)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">10000</span> <span class="o">**</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">dim</span><span class="p">))</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">theta</span>
+    <span class="n">cos_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">main_diagonal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">cos_theta</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">main_diagonal</span><span class="p">)</span>
+    <span class="n">off_diagonal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">off_diagonal</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">sin_theta</span>
+    <span class="n">rot</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="o">-</span><span class="n">off_diagonal</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">rot</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">off_diagonal</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">k</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rot</span>
+</code></pre></div>
+<p>To see how this affects the pre-softmax layer, let's take 2 identity vectors of dimension <span class="arithmatex">\(d=64\)</span>,</p>
+<div class="highlight"><pre><span></span><code><span class="n">dim</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div>
+<p>Without the rotation matrix, the value of <span class="arithmatex">\(\mathbf{k}_m^T\mathbf{q}_n\)</span> has a constant value of 64 regardless of the value of <span class="arithmatex">\(m\)</span> and <span class="arithmatex">\(n\)</span>. With the rotational matrix, lets's see how the value of <span class="arithmatex">\(\mathbf{k}^T_{m}\mathbf{R}_{d, n-m}\mathbf{q}_{n}\)</span> varies with <span class="arithmatex">\(n-m\)</span> with the following plot:</p>
+<details>
+<summary>Plotting code</summary>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[(</span><span class="n">k</span><span class="o">.</span><span class="n">T</span><span class="nd">@get_rot_matrix</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">_m</span><span class="p">)</span><span class="nd">@q</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">for</span> <span class="n">_m</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Relative distance $\mathrm{n - m}$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\mathbf</span><span class="si">{k}</span><span class="s1">^T_</span><span class="si">{m}</span><span class="s1">\mathbf</span><span class="si">{R}</span><span class="s1">_{d, n-m}\mathbf</span><span class="si">{q}</span><span class="s1">_</span><span class="si">{n}</span><span class="s1">$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">62</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="s2">&quot;y=64&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+</code></pre></div>
+</details>
+
+<p><img alt="Pasted image 20240803111003.png" src="../../../../images/Pasted%20image%2020240803111003.png" /></p>
+<p>This by itself doesn't actually show the mechanics of what will happen during training. During training, the vectors <span class="arithmatex">\(\mathbf{k}_m\)</span> and <span class="arithmatex">\(\mathbf{q}_n\)</span> are themselves the result of multiplying a weight vector <span class="arithmatex">\(\mathbf{W}_{k,q}\)</span> to the token embedding at positions <span class="arithmatex">\(m\)</span> and <span class="arithmatex">\(n\)</span> respectively. This means that the pre-softmax value is actually </p>
+<p>$$
+\mathbf{k}^T_{m}\mathbf{R}<em>{d, n-m}\mathbf{q}</em>{n} = \mathbf{x}<em>m<sup>T\mathbf{W}_k</sup>T\mathbf{R}</em>{d, n-m}\mathbf{W}_q\mathbf{x}_n
+$$
+Where <span class="arithmatex">\(\mathbf{W}_k, \mathbf{W}_q\)</span> are learned weights. This means that the exact nature of the sinusoidal patterns we see in the plot as <span class="arithmatex">\(n-m\)</span> increases can get very finely tuned during the training process.</p>
+<h3 id="implementation-in-practice">Implementation in practice<a class="headerlink" href="#implementation-in-practice" title="Permanent link">&para;</a></h3>
+<p>So far, the code we have looked at is at a vector level. Now let's see how this would get implemented when you have to do it for an entire sequence of tokens. </p>
+<p>The query matrix <span class="arithmatex">\(\mathbf{Q} \in \mathbb{R}^{N \times d}\)</span>, where <span class="arithmatex">\(N\)</span> is the number of tokens in the sequence and <span class="arithmatex">\(d\)</span> is the dimension of each data point, can be represented as:</p>
+<!-- $$
+\mathbf{Q} = \left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^T\text{-</del>}\hphantom{-} \\
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^T\text{-</del>}\hphantom{-} \\
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^T\text{-</del>}\hphantom{-} \\
+...\\
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^T\text{-</del>}\hphantom{-} \\
+\end{array}
+\right]
+$$ -->
+<div class="arithmatex">\[
+\textemdash
+\]</div>
+<div class="arithmatex">\[
+\mathbf{Q} = \left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_0^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
+\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_1^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
+\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_2^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
+...\\
+\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_{N-1}^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
+\end{array}
+\right]
+\]</div>
+<p>where <span class="arithmatex">\(q_i \in \mathbb{R}^d, q_i = \mathbf{W}_q\mathbf{x}_i\)</span> represents the query vector of the embedding of the token in the <span class="arithmatex">\(i^{th}\)</span> position <span class="arithmatex">\(\mathbf{x}_i\)</span>.</p>
+<p>Similarly for the key values:</p>
+<p>$$
+\mathbf{K} = \left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\text<del class="critic">-}k_0^T\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}k_1^T\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}k_2^T\text{-</del>}\hphantom{-} \
+...\
+\hphantom{-}\smash[t]{\text<del class="critic">-}k_{N-1}^T\text{-</del>}\hphantom{-} \
+\end{array}
+\right]
+$$</p>
+<p>Let's focus only on the query matrix for now. After applying the rotational matrix to each of the vectors, let's call the result <span class="arithmatex">\(\mathbf{Q'}\)</span>:</p>
+<p>$$
+\mathbf{Q'} = \left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^{,T}\text{-</del>}\hphantom{-} \
+...\
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\end{array}
+\right]
+$$</p>
+<p>$$
+= \left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, 0}q_0^T\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, 1}q_1^T\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, 2}q_2^T\text{-</del>}\hphantom{-} \
+...\
+\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, N-1}q_{N-1}^T\text{-</del>}\hphantom{-} \
+\end{array}
+\right]
+$$</p>
+<p>The "naive" way to get the rotary positional embeddings of the key/query matrix is by simply multiplying each of the rows with the rotational matrix <span class="arithmatex">\(\mathbf{R}_{d, i}\)</span> that corresponds to the <span class="arithmatex">\(i^{th}\)</span> position, and then set the result of that as the <span class="arithmatex">\(i^{th}\)</span> row of the resultant matrix. In naive python, the code would be like this:</p>
+<div class="highlight"><pre><span></span><code><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">Q_prime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">q_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Q</span><span class="p">):</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="n">get_rot_matrix</span><span class="p">(</span><span class="n">Q_prime</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">Q_prime</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">rot</span> <span class="o">@</span> <span class="n">q_i</span><span class="o">.</span><span class="n">T</span>
+<span class="n">Q_prime</span>
+</code></pre></div>
+<p>and the result you get is
+<div class="highlight"><pre><span></span><code>array([[ 1.78862847,  0.43650985,  0.09649747, -1.8634927 ],
+       [ 0.1486459 , -0.42509122, -0.07646744, -0.62779673],
+       [ 0.45216792,  0.15874903, -1.33129326,  0.85816992],
+       [-1.11375321, -1.5680929 ,  0.06214963, -0.40299454],
+       [-0.81390684,  1.4235748 ,  1.02561261, -1.06090267]])
+</code></pre></div></p>
+<p>But there's a more cunning way to get rid of the loop in the code snippet in a vectorised way. Let's take a closer look at the multiplication of the rotational matrix with a query vector:</p>
+<p>$$
+\mathbf{R}<em>{d, m}\mathbf{q}_m =
+\tiny{\begin{bmatrix}
+\cos(m\theta_1) &amp; - \sin(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \
+\sin(m\theta_1) &amp; \cos(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \
+0 &amp; 0 &amp; \cos(m\theta_2) &amp; - \sin(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \
+0 &amp; 0 &amp; \sin(m\theta_2) &amp; \cos(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \
+... \
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(m\theta</em>{d/2}) &amp; - \sin(m\theta_{d/2}) \
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \sin(m\theta_{d/2}) &amp; \cos(m\theta_{d/2}) \
+\end{bmatrix}
+\begin{bmatrix}
+q^m_1 \
+q^m_2 \
+... \
+q^m_{d-1} \
+q^m_d \
+\end{bmatrix}
+}
+$$
+(let'd drop the <span class="arithmatex">\(m\)</span> superscript on the individual elements of the <span class="arithmatex">\(\mathbf{q}\)</span> vector)
+$$
+=\tiny{
+\begin{bmatrix}
+\cos({m\theta_1})q_1 - \sin({m\theta_1})q_2 \
+\sin({m\theta_1})q_1 + \cos({m\theta_1})q_2 \
+\cos({m\theta_2})q_3 - \sin({m\theta_2})q_4 \
+\sin({m\theta_2})q_3 + \cos({m\theta_2})q_4 \
+... \
+\cos({m\theta_{d/2}})q_{d-1} - \sin({m\theta_{d/2}})q_d \
+\sin({m\theta_{d/2}})q_{d-1} + \cos({m\theta_{d/2}})q_d \</p>
+<p>\end{bmatrix}
+}
+$$</p>
+<div class="arithmatex">\[
+= \tiny{
+\begin{bmatrix}
+\cos({m\theta_1}) \\ \cos({m\theta_1}) \\ \cos({m\theta_2}) \\ \cos({m\theta_2}) \\  ... \\ \cos({m\theta_{d/2}}) \\ \cos({m\theta_{d/2}})
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+q_1 \\
+q_2 \\
+q_3 \\
+q_4 \\
+... \\
+q_{d-1} \\
+q_d \\
+\end{bmatrix}
+}
+\]</div>
+<div class="arithmatex">\[
++
+\]</div>
+<div class="arithmatex">\[ 
+\tiny{
+\begin{bmatrix}
+\sin({m\theta_1}) \\ \sin({m\theta_1}) \\ \sin({m\theta_2}) \\ \sin({m\theta_2}) \\  ... \\ \sin({m\theta_{d/2}}) \\ \sin({m\theta_{d/2}})
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+- q_2 \\
+q_1 \\
+- q_4 \\
+q_3 \\
+... \\
+- q_d \\
+q_{d - 1} \\
+\end{bmatrix}
+}
+\]</div>
+<p>So now, </p>
+<p>$$
+\mathbf{Q'} = \left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^{,T}\text{-</del>}\hphantom{-} \
+...\
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\end{array}
+\right]
+$$</p>
+<p>$$
+= \tiny{
+\begin{bmatrix}
+\cos({0\theta_1}) &amp; \cos({0\theta_1}) &amp; \cos({0\theta_2}) &amp; \cos({0\theta_2}) &amp;  ... &amp; \cos({0\theta_{d/2}}) &amp; \cos({0\theta_{d/2}}) \
+\cos({1\theta_1}) &amp; \cos({1\theta_1}) &amp; \cos({1\theta_2}) &amp; \cos({1\theta_2}) &amp;  ... &amp; \cos({1\theta_{d/2}}) &amp; \cos({1\theta_{d/2}}) \
+. \
+.\
+. \
+\cos({(N-1)\theta_1}) &amp; \cos({(N-1)\theta_1}) &amp; \cos({(N-1)\theta_2}) &amp; \cos({(N-1)\theta_2}) &amp;  ... &amp; \cos({(N-1)\theta_{d/2}}) &amp; \cos({(N-1)\theta_{d/2}}) \</p>
+<p>\end{bmatrix} \odot 
+\left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^{,T}\text{-</del>}\hphantom{-} \
+...\
+\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\end{array}
+\right]
+}
+$$</p>
+<div class="arithmatex">\[
++
+\]</div>
+<p>$$
+\tiny{
+\begin{bmatrix}
+\sin({0\theta_1}) &amp; \sin({0\theta_1}) &amp; \sin({0\theta_2}) &amp; \sin({0\theta_2}) &amp;  ... &amp; \sin({0\theta_{d/2}}) &amp; \sin({0\theta_{d/2}}) \
+\sin({1\theta_1}) &amp; \sin({1\theta_1}) &amp; \sin({1\theta_2}) &amp; \sin({1\theta_2}) &amp;  ... &amp; \sin({1\theta_{d/2}}) &amp; \sin({1\theta_{d/2}}) \
+. \
+.\
+. \
+\sin({(N-1)\theta_1}) &amp; \sin({(N-1)\theta_1}) &amp; \sin({(N-1)\theta_2}) &amp; \sin({(N-1)\theta_2}) &amp;  ... &amp; \sin({(N-1)\theta_{d/2}}) &amp; \sin({(N-1)\theta_{d/2}}) \</p>
+<p>\end{bmatrix} \odot 
+\left[
+\begin{array}{c}
+\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}_0^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}_1^{,T}\text{-</del>}\hphantom{-} \</p>
+<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}<em>2^{,T}\text{-</del>}\hphantom{-} \
+...\
+\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}</em>{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\end{array}
+\right]</p>
+<p>}
+$$</p>
+<p>where <span class="arithmatex">\(\text{rearranged\_q}_i\)</span> is </p>
+<div class="arithmatex">\[
+\begin{bmatrix}
+- q^i_2 \\
+q^i_1 \\
+- q^i_4 \\
+q^i_3 \\
+... \\
+- q^i_d \\
+q^i_{d - 1} \\
+\end{bmatrix}
+\]</div>
+<p>So now, you can see pretty quickly that the way to implement rotary positional embeddings in a vectorised way is going to be something similar to:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">repeat</span><span class="p">,</span> <span class="n">rearrange</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="k">def</span> <span class="nf">rotate_every_two</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Similar to what EleutherAI&#39;s implementation of the MeshTransformer is in JAX</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="o">-</span><span class="n">x2</span><span class="p">,</span> <span class="n">x1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;... d j -&gt; ... (d j)&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">apply_rotary_pos_emb</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">seq_idx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim_idx</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;apply rotary positional embedding</span>
+
+<span class="sd">    x in an input array, and the assumption that the shape is</span>
+<span class="sd">    (batch, seq_len, ..., dim)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: the input array</span>
+<span class="sd">        seq_idx: the index in x.shape that shows the sequence length.</span>
+<span class="sd">            By default we assume it is 1</span>
+<span class="sd">        dim_idx: the index in x.shape that shows the number of dimensions</span>
+<span class="sd">            By default we assume it is -1</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a numpy array with rotary positional embedding applied</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">dim_idx</span><span class="p">]</span>
+    <span class="n">inv_freq</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">10000</span> <span class="o">**</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">dim</span><span class="p">))</span>
+
+    <span class="n">sinusoid_inp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;i , j -&gt; i j&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">seq_idx</span><span class="p">]),</span> <span class="n">inv_freq</span><span class="p">)</span>
+    <span class="n">sines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">sinusoid_inp</span><span class="p">)</span>
+    <span class="n">cosines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">sinusoid_inp</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_apply_repeat</span><span class="p">(</span><span class="n">_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">repeat</span><span class="p">(</span><span class="n">_arr</span><span class="p">,</span> <span class="s2">&quot;b n -&gt; b (n j)&quot;</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">sin</span> <span class="o">=</span> <span class="n">_apply_repeat</span><span class="p">(</span><span class="n">sines</span><span class="p">)</span>
+    <span class="n">cos</span> <span class="o">=</span> <span class="n">_apply_repeat</span><span class="p">(</span><span class="n">cosines</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">cos</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">rotate_every_two</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">)</span>
+
+<span class="n">apply_rotary_pos_emb</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">seq_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<p>and the result is something like</p>
+<div class="highlight"><pre><span></span><code>array([[ 1.78862847,  0.43650985,  0.09649747, -1.8634927 ],
+       [ 0.1486459 , -0.42509122, -0.07646744, -0.62779673],
+       [ 0.45216792,  0.15874903, -1.33129326,  0.85816992],
+       [-1.11375321, -1.5680929 ,  0.06214963, -0.40299454],
+       [-0.81390684,  1.4235748 ,  1.02561261, -1.06090267]])
+</code></pre></div>
+<p>which is the same result you get using the "naive" python approach! This approach is also how the HuggingFace repository and other repositories implement rotary positional embeddings. </p>
+<p>Hopefully that has been a useful discourse in rotary positional embeddings!</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.sections"], "search": "../../../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+        <script src="../../../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -2,3 +2,6 @@
 .md-footer-copyright {
     display: none;
 }
+.small-math {
+    font-size: 0.8em; /* Adjust the value as needed */
+}

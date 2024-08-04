@@ -21,7 +21,7 @@
         <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../../../../feed_rss_updated.xml">
       
       <link rel="icon" href="../../../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.29">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.76a95c52.min.css">
       
         
         <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
@@ -178,7 +178,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -240,14 +240,14 @@
     
     
     
-    
-    
       
+        
+        
       
+    
     
     <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
-        
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
@@ -305,11 +305,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
@@ -373,11 +373,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
@@ -480,7 +480,7 @@
           <li class="md-nav__item">
   <a href="#how-do-you-train-a-neural-machine-translation-system" class="md-nav__link">
     <span class="md-ellipsis">
-      How do you train a  neural machine translation system?
+      How do you train a neural machine translation system?
     </span>
   </a>
   
@@ -719,7 +719,7 @@ prints the following:
         [-0.8257, 0.0528, 1.3637]],
         grad_fn=&lt;EmbeddingBackward0&gt;)
 </code></pre></div>
-a 6x1 matrix. If you want to dig further into the nature of the embedding layer, you can see the following:</p>
+a 6x3 matrix. If you want to dig further into the nature of the embedding layer, you can see the following:</p>
 <div class="highlight"><pre><span></span><code><span class="n">embedding_layer</span><span class="o">.</span><span class="n">weight</span>
 
 <span class="n">tensor</span><span class="p">([</span>
@@ -788,7 +788,19 @@ Imagine if we didn't have the positional embeddings. When the self-attention mec
 </code></pre></div>
 <p>When you plot it for <code>seq_len = 10</code> and <code>d_model = 64</code> (just toy values), you will get something like </p>
 <p><img alt="positional_encoding_from_paper.png" src="../../../../images/positional_encoding_from_paper.png" />
-You can look at <a href="https://github.com/jalammar/jalammar.github.io/blob/master/notebookes/transformer/transformer_positional_encoding_graph.ipynb">Jay Alamar's code</a> to see how to do this in a vectorised manner. </p>
+You can look at <a href="https://github.com/jalammar/jalammar.github.io/blob/master/notebookes/transformer/transformer_positional_encoding_graph.ipynb">Jay Alamar's code</a> to see how to do this in a vectorised manner, which I have reimplemented here in numpy: </p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">sinusoidal_encodings</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interleaved sinusoidal position embeddings.</span>
+
+<span class="sd">    Like in the original transformer paper - interleaved sin and cos.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">power_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">indices</span> <span class="o">/</span> <span class="n">dim</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;...,d-&gt;...d&quot;</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">power_term</span><span class="p">)</span>
+    <span class="n">encodings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">encodings</span> <span class="o">=</span> <span class="n">encodings</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">encodings</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">encodings</span>
+</code></pre></div>
 <p>In the old tensor2tensor library, the way positional encoding was done was actually by <em>not</em> interleaving the sines and cosines, but instead by doing something like this instead:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">positional_encoding_concat</span><span class="p">(</span><span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a sequence length, and a model embedding size, return a matrix</span>
@@ -1171,10 +1183,10 @@ This is easy to derive from first principles, remembering that <span class="arit
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.sections"], "search": "../../../../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.sections"], "search": "../../../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../../../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../../../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
         <script src="../../../../../javascripts/mathjax.js"></script>
       
