@@ -488,13 +488,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#original-bert-embeddings" class="md-nav__link">
+  <a href="#bert-embeddings" class="md-nav__link">
     <span class="md-ellipsis">
-      Original BERT embeddings
+      BERT embeddings
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Original BERT embeddings">
+    <nav class="md-nav" aria-label="BERT embeddings">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -624,18 +624,26 @@
 
   <h1>RoPE embeddings</h1>
 
-<p>Rotary positional embeddings (RoPE) is yet another tool you can use to improve the performance of your BERT based models.</p>
-<p>For a description of what embeddings are, and how they get used in attention/transformers, feel free to take a look at a previous post - <a href="../../../01/05/self-attention/#embedding">Self attention#Embedding</a> - for more information. The main point of an embedding module is to serve as a lookup table, mapping various kinds of integer ids - token ids, position ids etc. - into a vector space that will then get used in the attention mechanism.</p>
+<p>Rotary positional embeddings (RoPE) is yet another tool people use to improve the performance of BERT based models.</p>
+<p>For a description of what embeddings are, and how they get used in attention/transformers, feel free to take a look at a previous post - <a href="../../../01/05/self-attention/#embedding">Self attention#Embedding</a> - for more information. The main point of an embedding module is to serve as a lookup table, mapping various kinds of integer ids - token ids, position ids etc. - into vectors that will then get used in the attention mechanism.</p>
 <p>While <em>token</em> embeddings are one part of the puzzle, it is also important to inject the notion of a token's position in a sequence in the inputs to the attention mechanism. This injection is the subject of various methods in <em>positional</em> embeddings/encodings. </p>
 <!-- more -->
 
-<p>Here we'll go through the following - 
-1. Quickly recap the following:
-    1. The encoding scheme of proposed in the original transformers paper
-    2. The embedding schema in the original BERT model
-        1. How it is implemented in HuggingFace</p>
+<p>Here we'll go through the following - </p>
 <ol>
-<li>RoPE embeddings<ol>
+<li>
+<p>Quickly recap the following:</p>
+<ol>
+<li>The encoding scheme of proposed in the original transformers paper</li>
+<li>The embedding schema in the original BERT model<ol>
+<li>How it is implemented in HuggingFace</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Rotary positional embeddings (RoPE)</p>
+<ol>
 <li>Brief description behind wanting to use relative positional information</li>
 <li>How it is implemented in code</li>
 </ol>
@@ -698,8 +706,8 @@
 </details>
 
 <p><img alt="Pasted image 20240731120421.png" src="../../../../images/Pasted%20image%2020240731120421.png" />
-Each subplot here represents a data input, and for each subplot, the x-axis represents the <span class="arithmatex">\(i^{th}\)</span> position of the <span class="arithmatex">\(d\)</span> dimensional vector in position <span class="arithmatex">\(m\)</span>. I show these plots because it is not intuitive what the shape of a sinusoid of a exponential term would be. </p>
-<p>With this intuition, let us see a 2D plot of this encoding scheme, using  <code>seq_len = 10</code> and <code>dim=64</code>. </p>
+Each subplot here represents the positional encoding for a data input. For each subplot, the x-axis represents the <span class="arithmatex">\(i^{th}\)</span> position of the <span class="arithmatex">\(d\)</span> dimensional vector in position <span class="arithmatex">\(m\)</span>. I show these plots because it is not intuitive what the shape of a sinusoid of a exponential term would be. </p>
+<p>With this in mind, let us see a 2D plot of this encoding scheme, using  <code>seq_len = 10</code> and <code>dim=64</code>. </p>
 <details>
 <summary>Plotting code</summary>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">sinusoidal_embeddings</span><span class="p">(</span><span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
@@ -731,7 +739,7 @@ Each subplot here represents a data input, and for each subplot, the x-axis repr
 
 <p><img alt="Pasted image 20240731131522.png" src="../../../../images/Pasted%20image%2020240731131522.png" /></p>
 <p>Each row represents the encoding that will be added to the embedding of a token.</p>
-<p>But even this plot is not useful in visualising how this "helps" in injecting position information into the inputs. One visualisation that may help is by looking at the Euclidean distance of each of the vectors to a vector at a particular position index. Let's expand the <code>seq_len</code> to a longer 100 sequence.</p>
+<p>But even this plot is not useful in visualising how this "helps" in injecting position information into the inputs. One visualisation that may help is by looking at the Euclidean distance of each of the vectors to a vector at a particular position index. The plot below can provide some intution (here <code>seq_len</code> is 100 again):</p>
 <details><summary>Plotting Code</summary>
 <div class="highlight"><pre><span></span><code><span class="n">seq_len</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">seq_len</span><span class="p">)</span>
@@ -779,20 +787,20 @@ Each subplot here represents a data input, and for each subplot, the x-axis repr
 </details>
 
 <p><img alt="Pasted image 20240731143104.png" src="../../../../images/Pasted%20image%2020240731143104.png" /></p>
-<p>This makes sense because the frequency of the sinusoid is <span class="arithmatex">\(\theta_i\)</span> which is the highest value for when <span class="arithmatex">\(i\)</span> is smaller, and smallest when <span class="arithmatex">\(i\)</span> is larger. </p>
+<p>This makes sense because the frequency of the sinusoid is <span class="arithmatex">\(\theta_i\)</span>. <span class="arithmatex">\(\theta_i\)</span> has a higher value for when <span class="arithmatex">\(i\)</span> is smaller, and a smaller value when <span class="arithmatex">\(i\)</span> is larger. </p>
 <h3 id="what-are-the-limitations-of-of-the-sinusoidal-scheme-proposed-in-the-original-transformers-paper">What are the limitations of of the sinusoidal scheme proposed in the original transformers paper?<a class="headerlink" href="#what-are-the-limitations-of-of-the-sinusoidal-scheme-proposed-in-the-original-transformers-paper" title="Permanent link">&para;</a></h3>
 <p>The most obvious issues are as listed:
 1. The main problem with the scheme presented above is that everything is fixed. None of the components - the variation in the frequency range, the sinusoidal function itself etc. - gets updated during training. 
 2. The different sinusoids, while expressive, may not be the correct kind of expressive for all sequences and may not be capturing the complex positional relationships in the data.
 3. For longer sequence lengths, you can see that the difference blurs for vectors that are further away. </p>
-<h2 id="original-bert-embeddings">Original BERT embeddings<a class="headerlink" href="#original-bert-embeddings" title="Permanent link">&para;</a></h2>
-<p>The <a href="https://arxiv.org/pdf/1810.04805">BERT paper</a> uses learned positional embeddings (though the paper doesn't explicitly state it). The main idea is this - instead of using <em>predefined sinusoids</em> the paper defers the learning of how best to deal with a token's position to the model itself, so that the learns this in conjunction with the other weights. </p>
+<h2 id="bert-embeddings">BERT embeddings<a class="headerlink" href="#bert-embeddings" title="Permanent link">&para;</a></h2>
+<p>The <a href="https://arxiv.org/pdf/1810.04805">BERT paper</a> uses learned positional embeddings (though the paper doesn't explicitly state it). The main idea is this - instead of using <em>predefined sinusoids</em> like the original transformers paper used, the BERT paper defers the learning of how best to deal with a token's position to the model itself, so that the model learns this in conjunction with the other weights. </p>
 <p>Yet another embedding layer is defined, and instead of serving as a look up table for token ids to <span class="arithmatex">\(d\)</span> dimensional vectors, this embedding layer serves as a look up table for <em>a token's position in the sequence</em> to a <span class="arithmatex">\(d\)</span> dimensional vector.</p>
 <p>That is it, there's nothing more complicated. Let's quickly look at how the HuggingFace library does it.</p>
 <h3 id="bert-positional-embeddings-in-the-huggingface-library">BERT positional embeddings in the HuggingFace library<a class="headerlink" href="#bert-positional-embeddings-in-the-huggingface-library" title="Permanent link">&para;</a></h3>
 <p>Let's start with the <code>BertEmbeddings</code> class to see what happens.
 In the <code>BertEmbeddings</code> class, the <code>self.position_ids</code> is basically a 1 dimensional tensor that goes from <code>0</code> to <code>max_tokens - 1</code>. In the default case, <code>max_tokens</code> is 512, so <code>self.position_ids</code> is a <span class="arithmatex">\(1 \times 512\)</span>  <code>tensor([[ 0, 1, 2, 3, ... 511]])</code> (in code, this happens <a href="https://gitkraken.dev/link/dnNjb2RlOi8vZWFtb2Rpby5naXRsZW5zL2xpbmsvci80M2JhZGYyMTdkMWNjZmFmNDg2ZTJjYmIxYjM1NjcyMjZiNWU5NWJmL2Yvc3JjL3RyYW5zZm9ybWVycy9tb2RlbHMvYmVydC9tb2RlbGluZ19iZXJ0LnB5P3VybD1odHRwcyUzQSUyRiUyRmdpdGh1Yi5jb20lMkZodWdnaW5nZmFjZSUyRnRyYW5zZm9ybWVycy5naXQ%3D?origin=gitlens">here</a>). Remember that for BERT, the number of input tokens is fixed, and shorter token sequences are padded. 
-In the <code>forward</code> method of <code>BertEmbeddings</code>, you can see that this tensor is then passed through a <code>torch.nn.Embedding</code> module, which is nothing more than a look up table casting ints to vectors: </p>
+In the <code>forward</code> method of <code>BertEmbeddings</code>, you can see that this tensor is then passed through a <code>torch.nn.Embedding</code> module, which is nothing more than a look up table casting ints to vectors. The result is then added to the token embeddings.</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">BertEmbeddings</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
         <span class="o">...</span>
@@ -867,7 +875,7 @@ As an aside, let's also quickly look at how the output of this module is used. L
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">BaseModelOutputWithPastAndCrossAttentions</span><span class="p">]:</span>
         <span class="o">...</span>
         <span class="n">layer_outputs</span> <span class="o">=</span> <span class="n">layer_module</span><span class="p">(</span>
-                <span class="n">hidden_states</span><span class="p">,</span>
+                <span class="n">hidden_states</span><span class="p">,</span>  <span class="c1"># &lt;- this contains the embeddings</span>
                 <span class="n">attention_mask</span><span class="p">,</span>
                 <span class="n">layer_head_mask</span><span class="p">,</span>
                 <span class="n">encoder_hidden_states</span><span class="p">,</span>
@@ -888,7 +896,7 @@ As an aside, let's also quickly look at how the output of this module is used. L
 
         <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span>
-                <span class="n">hidden_states</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                <span class="n">hidden_states</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>  <span class="c1"># &lt;- this contains the embeddings, used as input to the attention mechanism</span>
                 <span class="n">attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">head_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">encoder_hidden_states</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -903,17 +911,19 @@ As an aside, let's also quickly look at how the output of this module is used. L
 </code></pre></div>
 <h2 id="rope-embeddings">RoPE embeddings<a class="headerlink" href="#rope-embeddings" title="Permanent link">&para;</a></h2>
 <h3 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h3>
-<p>In the embedding/encoding schemes above, the model has to learn the absolute position embeddings. But this is often not very useful under the following circumstances:
-1. Often times when training on some datasets, shorter unrelated token sequences are stacked together and trained on together. Here absolute positional embeddings make no sense because the actual first token of a sentence would have some arbitrary positional information based on what came before it.
-2. Other times, long token sequences are broken up into shorter sequences before passing through the attention layers. In this scenario absolute positions don't correspond to the actual positions of the tokens in the original sequences.</p>
-<p>Also, there is another problem with simply adding embedding of absolute positions. In the standard attention mechanism, the dot product no longer cares about the positions of tokens, and the hope is that the model will learn the embeddings such that the dot product between tokens at different positions make sense with respect to the task at hand. </p>
+<p>In the embedding/encoding schemes above, the model has to learn the absolute position embeddings. But this is often not very useful under the following circumstances:</p>
+<ol>
+<li>Often times when training on some datasets, shorter unrelated token sequences are stacked together and trained on together. Here absolute positional embeddings make no sense because the actual first token of a sentence would have some arbitrary positional information based on what came before it.</li>
+<li>Other times, long token sequences are broken up into shorter sequences before passing through the attention layers. In this scenario absolute positions don't correspond to the actual positions of the tokens in the original sequences.</li>
+<li>In the standard attention mechanism, the dot product no longer cares about the positions of tokens. This means the attention mechanism is only ever <em>indirectly</em> dependent on the position of tokens because the positional embeddings are added to the token embeddings <em>before</em> the matrix multiplication.</li>
+</ol>
 <p><img alt="Pasted image 20240715130105.png" src="../../../../images/Pasted%20image%2020240715130105.png" /></p>
 <p>For such cases, we want an embedding scheme that efficiently does some kind of relative positional embedding, and also explicitly "injects" this knowledge into the attention mechanism. What does relative positional embedding mean? We basically want a function <span class="arithmatex">\(f(\mathbf{x}, l)\)</span> that takes in as arguments an input token sequence <span class="arithmatex">\(\mathbf{x}\)</span> and its position <span class="arithmatex">\(l\)</span> such that the <em>dot product</em> between 2 vectors <span class="arithmatex">\(\mathbf{x}_1\)</span> and <span class="arithmatex">\(\mathbf{x}_2\)</span> in positions <span class="arithmatex">\(l_1\)</span> and <span class="arithmatex">\(l_2\)</span> is only sensitive to <span class="arithmatex">\(\mathbf{x}_1\)</span> and <span class="arithmatex">\(\mathbf{x}_2\)</span>, and the relative position <span class="arithmatex">\(l_1 - l_2\)</span>. </p>
 <p>There are many ways to do this, but the scheme that most of the field has settled on was first proposed in the <a href="https://arxiv.org/pdf/2104.09864">RoFormer paper</a>, which we talk about in the next section.</p>
 <h3 id="what-are-rope-embeddings">What are RoPE embeddings?<a class="headerlink" href="#what-are-rope-embeddings" title="Permanent link">&para;</a></h3>
-<p>The RoFormer paper and a <a href="https://blog.eleuther.ai/rotary-embeddings/">EleutherAI blogpost</a> that the paper mentions explain the intuition behind rotational positional embeddings in detail but contains a lot of detail that obfuscated the essence (the "<a href="https://blog.eleuther.ai/rotary-embeddings/#visual-intuition">Visual Intuition</a>" section of the blogpost continues to confuse me) for me.</p>
+<p>The RoFormer paper, and the <a href="https://blog.eleuther.ai/rotary-embeddings/">EleutherAI blogpost</a> that the paper mentions, explain the intuition behind rotational positional embeddings in detail. But both contains a lot of detail that obfuscated the essence (the "<a href="https://blog.eleuther.ai/rotary-embeddings/#visual-intuition">Visual Intuition</a>" section of the blogpost continues to confuse me) for me.</p>
 <p>If you have found yourself on the same boat, below is hopefully a simpler and more practical explanation of it.</p>
-<p>The easiest way to to preserve the notion of some kind of "relative" distance between two token embeddings in the pre-softmax attention step, is to make use of the angle between them in their <span class="arithmatex">\(d\)</span> dimensional space. </p>
+<p>The easiest way to to preserve the notion of some kind of "relative" distance between two token embeddings in the pre-softmax attention step, is to make use of the angle between them in their <span class="arithmatex">\(d\)</span> dimensional space. This is because the dot product of two vectors is proportional to the cosine of the angle between them, and the pre-softmax matrix multiplication step is nothing but a series of dot products. </p>
 <p>A cunning way to do so would be to multiply the token embedding in the <span class="arithmatex">\(m^{th}\)</span> position in the sequence by the following rotational matrix:</p>
 <div class="arithmatex">\[
 \mathbf{R}_{d, m} =
@@ -928,10 +938,10 @@ As an aside, let's also quickly look at how the output of this module is used. L
 \end{bmatrix}}
 \]</div>
 <p>where </p>
-<p>$$
+<div class="arithmatex">\[
 \theta_i = 10,000 ^{\frac{-2i}{d}}
-$$
-i.e. the original definition of the angle as in the transformer paper.</p>
+\]</div>
+<p>i.e. the original definition of the angle as in the transformer paper.</p>
 <p>So now, your key values become: </p>
 <div class="arithmatex">\[
 \mathbf{k}'_{m} = \mathbf{R}_{d, m}\mathbf{k}_{m}
@@ -997,7 +1007,7 @@ i.e. the original definition of the angle as in the transformer paper.</p>
 <div class="arithmatex">\[
 = \mathbf{R}_{d, n-m}
 \]</div>
-<p>So we now basically have a way of "injecting" the relative distance between 2 tokens in a sequence into the attention mechanism! As with all transformer behaviours, it is not easy or well understood exactly how this leads to better training. But the common consensus in the field has been that this injection, and corresponding multiplicative and sinusoidal relationship between relative position and the learned weights, makes it "easier" for the model to learn sequences - a consensus that has been proved empirically over and over again.</p>
+<p>So we now basically have a way of "injecting" the relative distance between 2 tokens in a sequence into the attention mechanism!  All this theory still does not completely explain exactly how this leads to better training, as is common with all transformers behaviour. But the common consensus in the field has been that this injection, and corresponding multiplicative and sinusoidal relationship between relative position and the learned weights, makes it "easier" (more data efficient) for the model to learn sequences - a consensus that has been proved empirically over and over again.</p>
 <p>Now, let's see some basic plots of this. </p>
 <p>First, here's the code to generate <span class="arithmatex">\(\mathbf{R}_{d, m}\)</span> </p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_rot_matrix</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
@@ -1035,76 +1045,67 @@ i.e. the original definition of the angle as in the transformer paper.</p>
 </details>
 
 <p><img alt="Pasted image 20240803111003.png" src="../../../../images/Pasted%20image%2020240803111003.png" /></p>
-<p>This by itself doesn't actually show the mechanics of what will happen during training. During training, the vectors <span class="arithmatex">\(\mathbf{k}_m\)</span> and <span class="arithmatex">\(\mathbf{q}_n\)</span> are themselves the result of multiplying a weight vector <span class="arithmatex">\(\mathbf{W}_{k,q}\)</span> to the token embedding at positions <span class="arithmatex">\(m\)</span> and <span class="arithmatex">\(n\)</span> respectively. This means that the pre-softmax value is actually </p>
-<p>$$
-\mathbf{k}^T_{m}\mathbf{R}<em>{d, n-m}\mathbf{q}</em>{n} = \mathbf{x}<em>m<sup>T\mathbf{W}_k</sup>T\mathbf{R}</em>{d, n-m}\mathbf{W}_q\mathbf{x}_n
-$$
-Where <span class="arithmatex">\(\mathbf{W}_k, \mathbf{W}_q\)</span> are learned weights. This means that the exact nature of the sinusoidal patterns we see in the plot as <span class="arithmatex">\(n-m\)</span> increases can get very finely tuned during the training process.</p>
+<p>This by itself doesn't actually show the mechanics of what will happen during training. During training, the vectors <span class="arithmatex">\(\mathbf{k}_m\)</span> and <span class="arithmatex">\(\mathbf{q}_n\)</span> are themselves the result of multiplying a weight vector <span class="arithmatex">\(\mathbf{W}_k\)</span> (for the key values), <span class="arithmatex">\(\mathbf{W}_q\)</span> (for the query values) to the token embedding at positions <span class="arithmatex">\(m\)</span> and <span class="arithmatex">\(n\)</span> respectively. This means that the pre-softmax value is actually </p>
+<div class="arithmatex">\[
+\mathbf{k}^T_{m}\mathbf{R}_{d, n-m}\mathbf{q}_{n} = \mathbf{x}_m^T\mathbf{W}_k^T\mathbf{R}_{d, n-m}\mathbf{W}_q\mathbf{x}_n
+\]</div>
+<p>Where <span class="arithmatex">\(\mathbf{W}_k, \mathbf{W}_q\)</span> are learned weights. This means that the exact nature of the sinusoidal patterns we see in the plot as <span class="arithmatex">\(n-m\)</span> increases can get very finely tuned during the training process.</p>
 <h3 id="implementation-in-practice">Implementation in practice<a class="headerlink" href="#implementation-in-practice" title="Permanent link">&para;</a></h3>
 <p>So far, the code we have looked at is at a vector level. Now let's see how this would get implemented when you have to do it for an entire sequence of tokens. </p>
 <p>The query matrix <span class="arithmatex">\(\mathbf{Q} \in \mathbb{R}^{N \times d}\)</span>, where <span class="arithmatex">\(N\)</span> is the number of tokens in the sequence and <span class="arithmatex">\(d\)</span> is the dimension of each data point, can be represented as:</p>
-<!-- $$
-\mathbf{Q} = \left[
-\begin{array}{c}
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^T\text{-</del>}\hphantom{-} \\
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^T\text{-</del>}\hphantom{-} \\
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^T\text{-</del>}\hphantom{-} \\
-...\\
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^T\text{-</del>}\hphantom{-} \\
-\end{array}
-\right]
-$$ -->
-<div class="arithmatex">\[
-\textemdash
-\]</div>
 <div class="arithmatex">\[
 \mathbf{Q} = \left[
 \begin{array}{c}
-\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_0^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
-\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_1^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
-\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_2^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
+\hphantom{-}\whitetextemdash q_0^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_1^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_2^T\whitetextemdash \hphantom{-} \\
 ...\\
-\hphantom{-}\smash[t]{\rule{1cm}{0.4pt}}q_{N-1}^T\smash[t]{\rule{1cm}{0.4pt}}\hphantom{-} \\
+\hphantom{-}\whitetextemdash q_{N-1}^T\whitetextemdash \hphantom{-} \\
 \end{array}
 \right]
 \]</div>
 <p>where <span class="arithmatex">\(q_i \in \mathbb{R}^d, q_i = \mathbf{W}_q\mathbf{x}_i\)</span> represents the query vector of the embedding of the token in the <span class="arithmatex">\(i^{th}\)</span> position <span class="arithmatex">\(\mathbf{x}_i\)</span>.</p>
 <p>Similarly for the key values:</p>
-<p>$$
+<div class="arithmatex">\[
 \mathbf{K} = \left[
 \begin{array}{c}
-\hphantom{-}\smash[t]{\text<del class="critic">-}k_0^T\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}k_1^T\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}k_2^T\text{-</del>}\hphantom{-} \
-...\
-\hphantom{-}\smash[t]{\text<del class="critic">-}k_{N-1}^T\text{-</del>}\hphantom{-} \
+\hphantom{-}\whitetextemdash k_0^T \whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash k_1^T \whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash k_2^T \whitetextemdash \hphantom{-} \\
+...\\
+\hphantom{-}\whitetextemdash k_{N-1}^T \whitetextemdash \hphantom{-} \\
 \end{array}
 \right]
-$$</p>
+\]</div>
 <p>Let's focus only on the query matrix for now. After applying the rotational matrix to each of the vectors, let's call the result <span class="arithmatex">\(\mathbf{Q'}\)</span>:</p>
-<p>$$
+<div class="arithmatex">\[
 \mathbf{Q'} = \left[
 \begin{array}{c}
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^{,T}\text{-</del>}\hphantom{-} \
-...\
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\hphantom{-}\whitetextemdash q_0^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_1^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_2^{,T}\whitetextemdash \hphantom{-} \\
+...\\
+\hphantom{-}\whitetextemdash q_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
 \end{array}
 \right]
-$$</p>
-<p>$$
+\]</div>
+<div class="arithmatex">\[
 = \left[
 \begin{array}{c}
-\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, 0}q_0^T\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, 1}q_1^T\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, 2}q_2^T\text{-</del>}\hphantom{-} \
-...\
-\hphantom{-}\smash[t]{\text<del class="critic">-}\mathbf{R}^T_{d, N-1}q_{N-1}^T\text{-</del>}\hphantom{-} \
+\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, 0}q_0^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, 1}q_1^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, 2}q_2^T\whitetextemdash \hphantom{-} \\
+...\\
+\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, N-1}q_{N-1}^T\whitetextemdash \hphantom{-} \\
 \end{array}
 \right]
-$$</p>
-<p>The "naive" way to get the rotary positional embeddings of the key/query matrix is by simply multiplying each of the rows with the rotational matrix <span class="arithmatex">\(\mathbf{R}_{d, i}\)</span> that corresponds to the <span class="arithmatex">\(i^{th}\)</span> position, and then set the result of that as the <span class="arithmatex">\(i^{th}\)</span> row of the resultant matrix. In naive python, the code would be like this:</p>
+\]</div>
+<p>The "naive" way to get the rotary positional embeddings of the key/query matrix is simply - </p>
+<ol>
+<li>Multiplying each row <span class="arithmatex">\(\mathbf{q}_i\)</span> with the rotational matrix <span class="arithmatex">\(\mathbf{R}_{d, i}\)</span>. </li>
+<li>Setting the result of the previous step as the <span class="arithmatex">\(i^{th}\)</span> row of the resultant matrix.</li>
+</ol>
+<p>In naive python, the code would be like this:</p>
 <div class="highlight"><pre><span></span><code><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">Q_prime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
@@ -1120,41 +1121,41 @@ $$</p>
        [-1.11375321, -1.5680929 ,  0.06214963, -0.40299454],
        [-0.81390684,  1.4235748 ,  1.02561261, -1.06090267]])
 </code></pre></div></p>
-<p>But there's a more cunning way to get rid of the loop in the code snippet in a vectorised way. Let's take a closer look at the multiplication of the rotational matrix with a query vector:</p>
-<p>$$
-\mathbf{R}<em>{d, m}\mathbf{q}_m =
+<p>But there's a more cunning way of doing everything in a vectorised way and getting rid of the loop in the code snippet. Let's take a closer look at the multiplication of the rotational matrix with a query vector:</p>
+<div class="arithmatex">\[
+\mathbf{R}_{d, m}\mathbf{q}_m =
 \tiny{\begin{bmatrix}
-\cos(m\theta_1) &amp; - \sin(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \
-\sin(m\theta_1) &amp; \cos(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \
-0 &amp; 0 &amp; \cos(m\theta_2) &amp; - \sin(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \
-0 &amp; 0 &amp; \sin(m\theta_2) &amp; \cos(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \
-... \
-0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(m\theta</em>{d/2}) &amp; - \sin(m\theta_{d/2}) \
-0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \sin(m\theta_{d/2}) &amp; \cos(m\theta_{d/2}) \
+\cos(m\theta_1) &amp; - \sin(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+\sin(m\theta_1) &amp; \cos(m\theta_1) &amp; 0 &amp; 0 &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \cos(m\theta_2) &amp; - \sin(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \sin(m\theta_2) &amp; \cos(m\theta_2) &amp; ...  &amp; 0 &amp; 0 \\
+... \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \cos(m\theta_{d/2}) &amp; - \sin(m\theta_{d/2}) \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; ...  &amp; \sin(m\theta_{d/2}) &amp; \cos(m\theta_{d/2}) \\
 \end{bmatrix}
 \begin{bmatrix}
-q^m_1 \
-q^m_2 \
-... \
-q^m_{d-1} \
-q^m_d \
+q^m_1 \\
+q^m_2 \\
+... \\
+q^m_{d-1} \\
+q^m_d \\
 \end{bmatrix}
 }
-$$
-(let'd drop the <span class="arithmatex">\(m\)</span> superscript on the individual elements of the <span class="arithmatex">\(\mathbf{q}\)</span> vector)
-$$
+\]</div>
+<p>(let's drop the <span class="arithmatex">\(m\)</span> superscript showing the sequence position on the individual elements of the <span class="arithmatex">\(\mathbf{q}\)</span> vector)</p>
+<div class="arithmatex">\[
 =\tiny{
 \begin{bmatrix}
-\cos({m\theta_1})q_1 - \sin({m\theta_1})q_2 \
-\sin({m\theta_1})q_1 + \cos({m\theta_1})q_2 \
-\cos({m\theta_2})q_3 - \sin({m\theta_2})q_4 \
-\sin({m\theta_2})q_3 + \cos({m\theta_2})q_4 \
-... \
-\cos({m\theta_{d/2}})q_{d-1} - \sin({m\theta_{d/2}})q_d \
-\sin({m\theta_{d/2}})q_{d-1} + \cos({m\theta_{d/2}})q_d \</p>
-<p>\end{bmatrix}
+\cos({m\theta_1})q_1 - \sin({m\theta_1})q_2 \\
+\sin({m\theta_1})q_1 + \cos({m\theta_1})q_2 \\
+\cos({m\theta_2})q_3 - \sin({m\theta_2})q_4 \\
+\sin({m\theta_2})q_3 + \cos({m\theta_2})q_4 \\
+... \\
+\cos({m\theta_{d/2}})q_{d-1} - \sin({m\theta_{d/2}})q_d \\
+\sin({m\theta_{d/2}})q_{d-1} + \cos({m\theta_{d/2}})q_d \\
+\end{bmatrix}
 }
-$$</p>
+\]</div>
 <div class="arithmatex">\[
 = \tiny{
 \begin{bmatrix}
@@ -1192,64 +1193,66 @@ q_{d - 1} \\
 \end{bmatrix}
 }
 \]</div>
+<p>where <span class="arithmatex">\(\odot\)</span> is the element-wise multiplication/Hadamard product.</p>
 <p>So now, </p>
-<p>$$
+<div class="arithmatex">\[
 \mathbf{Q'} = \left[
 \begin{array}{c}
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^{,T}\text{-</del>}\hphantom{-} \
-...\
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\hphantom{-}\whitetextemdash q_0^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_1^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_2^{,T}\whitetextemdash \hphantom{-} \\
+...\\
+\hphantom{-}\whitetextemdash q_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
 \end{array}
 \right]
-$$</p>
-<p>$$
+\]</div>
+<div class="arithmatex">\[
 = \tiny{
 \begin{bmatrix}
-\cos({0\theta_1}) &amp; \cos({0\theta_1}) &amp; \cos({0\theta_2}) &amp; \cos({0\theta_2}) &amp;  ... &amp; \cos({0\theta_{d/2}}) &amp; \cos({0\theta_{d/2}}) \
-\cos({1\theta_1}) &amp; \cos({1\theta_1}) &amp; \cos({1\theta_2}) &amp; \cos({1\theta_2}) &amp;  ... &amp; \cos({1\theta_{d/2}}) &amp; \cos({1\theta_{d/2}}) \
-. \
-.\
-. \
-\cos({(N-1)\theta_1}) &amp; \cos({(N-1)\theta_1}) &amp; \cos({(N-1)\theta_2}) &amp; \cos({(N-1)\theta_2}) &amp;  ... &amp; \cos({(N-1)\theta_{d/2}}) &amp; \cos({(N-1)\theta_{d/2}}) \</p>
-<p>\end{bmatrix} \odot 
+\cos({0\theta_1}) &amp; \cos({0\theta_1}) &amp; \cos({0\theta_2}) &amp; \cos({0\theta_2}) &amp;  ... &amp; \cos({0\theta_{d/2}}) &amp; \cos({0\theta_{d/2}}) \\
+\cos({1\theta_1}) &amp; \cos({1\theta_1}) &amp; \cos({1\theta_2}) &amp; \cos({1\theta_2}) &amp;  ... &amp; \cos({1\theta_{d/2}}) &amp; \cos({1\theta_{d/2}}) \\
+. \\
+.\\
+. \\
+\cos({(N-1)\theta_1}) &amp; \cos({(N-1)\theta_1}) &amp; \cos({(N-1)\theta_2}) &amp; \cos({(N-1)\theta_2}) &amp;  ... &amp; \cos({(N-1)\theta_{d/2}}) &amp; \cos({(N-1)\theta_{d/2}}) \\
+\end{bmatrix} \odot 
 \left[
 \begin{array}{c}
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_0^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_1^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}q_2^{,T}\text{-</del>}\hphantom{-} \
-...\
-\hphantom{-}\smash[t]{\text<del class="critic">-}q_{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\hphantom{-}\whitetextemdash q_0^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_1^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash q_2^{,T}\whitetextemdash \hphantom{-} \\
+...\\
+\hphantom{-}\whitetextemdash q_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
 \end{array}
 \right]
 }
-$$</p>
+\]</div>
 <div class="arithmatex">\[
 +
 \]</div>
-<p>$$
+<div class="arithmatex">\[
 \tiny{
 \begin{bmatrix}
-\sin({0\theta_1}) &amp; \sin({0\theta_1}) &amp; \sin({0\theta_2}) &amp; \sin({0\theta_2}) &amp;  ... &amp; \sin({0\theta_{d/2}}) &amp; \sin({0\theta_{d/2}}) \
-\sin({1\theta_1}) &amp; \sin({1\theta_1}) &amp; \sin({1\theta_2}) &amp; \sin({1\theta_2}) &amp;  ... &amp; \sin({1\theta_{d/2}}) &amp; \sin({1\theta_{d/2}}) \
-. \
-.\
-. \
-\sin({(N-1)\theta_1}) &amp; \sin({(N-1)\theta_1}) &amp; \sin({(N-1)\theta_2}) &amp; \sin({(N-1)\theta_2}) &amp;  ... &amp; \sin({(N-1)\theta_{d/2}}) &amp; \sin({(N-1)\theta_{d/2}}) \</p>
-<p>\end{bmatrix} \odot 
+\sin({0\theta_1}) &amp; \sin({0\theta_1}) &amp; \sin({0\theta_2}) &amp; \sin({0\theta_2}) &amp;  ... &amp; \sin({0\theta_{d/2}}) &amp; \sin({0\theta_{d/2}}) \\
+\sin({1\theta_1}) &amp; \sin({1\theta_1}) &amp; \sin({1\theta_2}) &amp; \sin({1\theta_2}) &amp;  ... &amp; \sin({1\theta_{d/2}}) &amp; \sin({1\theta_{d/2}}) \\
+. \\
+.\\
+. \\
+\sin({(N-1)\theta_1}) &amp; \sin({(N-1)\theta_1}) &amp; \sin({(N-1)\theta_2}) &amp; \sin({(N-1)\theta_2}) &amp;  ... &amp; \sin({(N-1)\theta_{d/2}}) &amp; \sin({(N-1)\theta_{d/2}}) \\
+\end{bmatrix}
+\odot 
 \left[
 \begin{array}{c}
-\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}_0^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}_1^{,T}\text{-</del>}\hphantom{-} \</p>
-<p>\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}<em>2^{,T}\text{-</del>}\hphantom{-} \
-...\
-\hphantom{-}\smash[t]{\text<del class="critic">-}\text{rearranged_q}</em>{N-1}^{,T}\text{-</del>}\hphantom{-} \
+\hphantom{-}\whitetextemdash \text{rearranged-q}_0^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash \text{rearranged-q}_1^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}\whitetextemdash \text{rearranged-q}_2^{,T}\whitetextemdash \hphantom{-} \\
+...\\
+\hphantom{-}\whitetextemdash \text{rearranged-q}_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
 \end{array}
-\right]</p>
-<p>}
-$$</p>
-<p>where <span class="arithmatex">\(\text{rearranged\_q}_i\)</span> is </p>
+\right]
+}
+\]</div>
+<p>where <span class="arithmatex">\(\text{rearranged-q}_i\)</span> is </p>
 <div class="arithmatex">\[
 \begin{bmatrix}
 - q^i_2 \\

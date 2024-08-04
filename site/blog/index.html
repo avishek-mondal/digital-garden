@@ -613,8 +613,8 @@
   </header>
   <div class="md-post__content md-typeset">
     <h2 id="rope-embeddings"><a class="toclink" href="2024/07/02/rope-embeddings/">RoPE embeddings</a></h2>
-<p>Rotary positional embeddings (RoPE) is yet another tool you can use to improve the performance of your BERT based models.</p>
-<p>For a description of what embeddings are, and how they get used in attention/transformers, feel free to take a look at a previous post - <a href="2024/01/05/self-attention/#embedding">Self attention#Embedding</a> - for more information. The main point of an embedding module is to serve as a lookup table, mapping various kinds of integer ids - token ids, position ids etc. - into a vector space that will then get used in the attention mechanism.</p>
+<p>Rotary positional embeddings (RoPE) is yet another tool people use to improve the performance of BERT based models.</p>
+<p>For a description of what embeddings are, and how they get used in attention/transformers, feel free to take a look at a previous post - <a href="2024/01/05/self-attention/#embedding">Self attention#Embedding</a> - for more information. The main point of an embedding module is to serve as a lookup table, mapping various kinds of integer ids - token ids, position ids etc. - into vectors that will then get used in the attention mechanism.</p>
 <p>While <em>token</em> embeddings are one part of the puzzle, it is also important to inject the notion of a token's position in a sequence in the inputs to the attention mechanism. This injection is the subject of various methods in <em>positional</em> embeddings/encodings. </p>
 
     
