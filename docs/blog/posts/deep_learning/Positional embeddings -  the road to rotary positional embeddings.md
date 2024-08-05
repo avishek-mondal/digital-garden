@@ -14,7 +14,7 @@ Here we'll go through the following -
 
 1. Quickly recap the following:
 	1. The encoding scheme of proposed in the original transformers paper
-	2. The embedding schema in the original BERT model
+	2. The embedding scheme in the original BERT model
 		1. How it is implemented in HuggingFace
 
 2. Rotary positional embeddings (RoPE)
