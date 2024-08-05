@@ -21,6 +21,8 @@ Here we'll go through the following -
 	1. Brief description behind wanting to use relative positional information
 	2. How it is implemented in code
 
+NOTE: This post, like all other posts is best viewed in dark mode.
+
 ## Sinusoidal embeddings from transformers paper
 As a recap the positional encoding in the original transformers paper was:
 
