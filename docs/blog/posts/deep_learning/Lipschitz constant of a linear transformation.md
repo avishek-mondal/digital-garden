@@ -87,7 +87,7 @@ $$
 
 The proof in the top answer of the above link from Stackoverflow is copied below for ease of reference: 
 
-By definition $‖𝐴‖= \text{sup} \{|Ax|, x ∈ \mathbb{R}^n, |x| ≤ 1 \} $ and hence for any 
+By definition $‖𝐴‖= \text{sup} \{|Ax|, x ∈ \mathbb{R}^n, |x| ≤ 1 \}$ and hence for any 
 $x \in \mathbb{R}^n$ such that 
 $|x| \leq 1$ we must have by the definition of supremum that 
 $|Ax| \leq ||A||$
@@ -121,7 +121,7 @@ $$
 
 The last step is using the same intermediate property we proved when showing the proof for submultiplicativity.
 
-This is the general case - the Lipschitz constant of a linear transform will be the matrix norm of the matrix $A $$.
+This is the general case - the Lipschitz constant of a linear transform will be the matrix norm of the matrix $A$.
 
 We need one more step to prove the claim in the book, and I think that involves deviating away from the general case.
 
@@ -147,9 +147,9 @@ $$
 A = U\Sigma V^T
 $$
 
-and then write $A^TA = (U\Sigma V^T)^T (U\Sigma V^T) = V \Sigma^T \Sigma V$, where $\Sigma $is a diagonal matrix with the eigenvalues of A in the diagonal.
+and then write $A^TA = (U\Sigma V^T)^T (U\Sigma V^T) = V \Sigma^T \Sigma V$, where $\Sigma$ is a diagonal matrix with the eigenvalues of A in the diagonal.
 
-Let $\lambda_1 $be the largest eigenvalue of A. Then, the maximum value of the ratio of $\frac{x^TA^TAx}{x^Tx}$ can be shown to be $\lambda_1^2$.
+Let $\lambda_1$ be the largest eigenvalue of A. Then, the maximum value of the ratio of $\frac{x^TA^TAx}{x^Tx}$ can be shown to be $\lambda_1^2$.
 
 That was the final step - showing 
 $||A||_2^2 = \lambda_1^2$,
