@@ -360,7 +360,7 @@ If you have found yourself on the same boat, below is hopefully a simpler and mo
 
 The easiest way to to preserve the notion of some kind of "relative" distance between two token embeddings in the pre-softmax attention step, is to make use of the angle between them in their $d$ dimensional space. This is because the dot product of two vectors is proportional to the cosine of the angle between them, and the pre-softmax matrix multiplication step is nothing but a series of dot products. 
 
-A cunning way to do so would be to multiply the token embedding in the $m^{th}$ position in the sequence by the following rotational matrix:
+A cunning way to do so would be to multiply the token embedding in the $m^{th}$ position in the sequence by the following rotational matrix (using 1 as the first index for clarity + ease of using latex):
 
 
 $$
@@ -525,16 +525,16 @@ Where $\mathbf{W}_k, \mathbf{W}_q$ are learned weights. This means that the exac
 
 So far, the code we have looked at is at a vector level. Now let's see how this would get implemented when you have to do it for an entire sequence of tokens. 
 
-The query matrix $\mathbf{Q} \in \mathbb{R}^{N \times d}$, where $N$ is the number of tokens in the sequence and $d$ is the dimension of each data point, can be represented as:
+The query matrix $\mathbf{Q} \in \mathbb{R}^{N \times d}$, where $N$ is the number of tokens in the sequence and $d$ is the dimension of each data point, can be represented as (switching back to 0th index because we're going to convert everything to code):
  
 $$
 \mathbf{Q} = \left[
 \begin{array}{c}
-\hphantom{-}\whitetextemdash q_0^T\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_1^T\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_2^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_0^T--- \hphantom{-} \\
+\hphantom{-}--- q_1^T--- \hphantom{-} \\
+\hphantom{-}--- q_2^T--- \hphantom{-} \\
 ...\\
-\hphantom{-}\whitetextemdash q_{N-1}^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_{N-1}^T--- \hphantom{-} \\
 \end{array}
 \right]
 $$
@@ -546,11 +546,11 @@ Similarly for the key values:
 $$
 \mathbf{K} = \left[
 \begin{array}{c}
-\hphantom{-}\whitetextemdash k_0^T \whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash k_1^T \whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash k_2^T \whitetextemdash \hphantom{-} \\
+\hphantom{-}--- k_0^T --- \hphantom{-} \\
+\hphantom{-}--- k_1^T --- \hphantom{-} \\
+\hphantom{-}--- k_2^T --- \hphantom{-} \\
 ...\\
-\hphantom{-}\whitetextemdash k_{N-1}^T \whitetextemdash \hphantom{-} \\
+\hphantom{-}--- k_{N-1}^T --- \hphantom{-} \\
 \end{array}
 \right]
 $$
@@ -560,11 +560,11 @@ Let's focus only on the query matrix for now. After applying the rotational matr
 $$
 \mathbf{Q'} = \left[
 \begin{array}{c}
-\hphantom{-}\whitetextemdash q_0^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_1^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_2^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_0^{,T}--- \hphantom{-} \\
+\hphantom{-}--- q_1^{,T}--- \hphantom{-} \\
+\hphantom{-}--- q_2^{,T}--- \hphantom{-} \\
 ...\\
-\hphantom{-}\whitetextemdash q_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_{N-1}^{,T}--- \hphantom{-} \\
 \end{array}
 \right]
 $$
@@ -572,11 +572,11 @@ $$
 $$
 = \left[
 \begin{array}{c}
-\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, 0}q_0^T\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, 1}q_1^T\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, 2}q_2^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- \mathbf{R}^T_{d, 0}q_0^T--- \hphantom{-} \\
+\hphantom{-}--- \mathbf{R}^T_{d, 1}q_1^T--- \hphantom{-} \\
+\hphantom{-}--- \mathbf{R}^T_{d, 2}q_2^T--- \hphantom{-} \\
 ...\\
-\hphantom{-}\whitetextemdash \mathbf{R}^T_{d, N-1}q_{N-1}^T\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- \mathbf{R}^T_{d, N-1}q_{N-1}^T--- \hphantom{-} \\
 \end{array}
 \right]
 $$
@@ -612,13 +612,13 @@ But there's a more cunning way of doing everything in a vectorised way and getti
 $$
 \mathbf{R}_{d, m}\mathbf{q}_m =
 \tiny{\begin{bmatrix}
-\cos(m\theta_1) & - \sin(m\theta_1) & 0 & 0 & ...  & 0 & 0 \\
-\sin(m\theta_1) & \cos(m\theta_1) & 0 & 0 & ...  & 0 & 0 \\
-0 & 0 & \cos(m\theta_2) & - \sin(m\theta_2) & ...  & 0 & 0 \\
-0 & 0 & \sin(m\theta_2) & \cos(m\theta_2) & ...  & 0 & 0 \\
+\cos(m\theta_0) & - \sin(m\theta_0) & 0 & 0 & ...  & 0 & 0 \\
+\sin(m\theta_0) & \cos(m\theta_0) & 0 & 0 & ...  & 0 & 0 \\
+0 & 0 & \cos(m\theta_1) & - \sin(m\theta_1) & ...  & 0 & 0 \\
+0 & 0 & \sin(m\theta_1) & \cos(m\theta_1) & ...  & 0 & 0 \\
 ... \\
-0 & 0 & 0 & 0 & ...  & \cos(m\theta_{d/2}) & - \sin(m\theta_{d/2}) \\
-0 & 0 & 0 & 0 & ...  & \sin(m\theta_{d/2}) & \cos(m\theta_{d/2}) \\
+0 & 0 & 0 & 0 & ...  & \cos(m\theta_{\frac{d}{2} -1}) & - \sin(m\theta_{\frac{d}{2} -1}) \\
+0 & 0 & 0 & 0 & ...  & \sin(m\theta_{\frac{d}{2} -1}) & \cos(m\theta_{\frac{d}{2} -1}) \\
 \end{bmatrix}
 \begin{bmatrix}
 q^m_1 \\
@@ -635,13 +635,13 @@ $$
 $$
 =\tiny{
 \begin{bmatrix}
-\cos({m\theta_1})q_1 - \sin({m\theta_1})q_2 \\
-\sin({m\theta_1})q_1 + \cos({m\theta_1})q_2 \\
-\cos({m\theta_2})q_3 - \sin({m\theta_2})q_4 \\
-\sin({m\theta_2})q_3 + \cos({m\theta_2})q_4 \\
+\cos({m\theta_0})q_0 - \sin({m\theta_0})q_1 \\
+\sin({m\theta_0})q_0 + \cos({m\theta_0})q_1 \\
+\cos({m\theta_1})q_2 - \sin({m\theta_1})q_3 \\
+\sin({m\theta_1})q_2 + \cos({m\theta_1})q_3 \\
 ... \\
-\cos({m\theta_{d/2}})q_{d-1} - \sin({m\theta_{d/2}})q_d \\
-\sin({m\theta_{d/2}})q_{d-1} + \cos({m\theta_{d/2}})q_d \\
+\cos({m\theta_{\frac{d}{2} -1}})q_{d-1} - \sin({m\theta_{\frac{d}{2} -1}})q_d \\
+\sin({m\theta_{\frac{d}{2} -1}})q_{d-1} + \cos({m\theta_{\frac{d}{2} -1}})q_d \\
 \end{bmatrix}
 }
 $$
@@ -649,17 +649,17 @@ $$
 $$
 = \tiny{
 \begin{bmatrix}
-\cos({m\theta_1}) \\ \cos({m\theta_1}) \\ \cos({m\theta_2}) \\ \cos({m\theta_2}) \\  ... \\ \cos({m\theta_{d/2}}) \\ \cos({m\theta_{d/2}})
+\cos({m\theta_0}) \\ \cos({m\theta_0}) \\ \cos({m\theta_1}) \\ \cos({m\theta_1}) \\  ... \\ \cos({m\theta_{\frac{d}{2} -1}}) \\ \cos({m\theta_{\frac{d}{2} -1}})
 \end{bmatrix}
 \odot
 \begin{bmatrix}
+q_0 \\
 q_1 \\
 q_2 \\
 q_3 \\
-q_4 \\
 ... \\
+q_{d-2} \\
 q_{d-1} \\
-q_d \\
 \end{bmatrix}
 }
 $$
@@ -671,17 +671,17 @@ $$
 $$ 
 \tiny{
 \begin{bmatrix}
-\sin({m\theta_1}) \\ \sin({m\theta_1}) \\ \sin({m\theta_2}) \\ \sin({m\theta_2}) \\  ... \\ \sin({m\theta_{d/2}}) \\ \sin({m\theta_{d/2}})
+\sin({m\theta_0}) \\ \sin({m\theta_0}) \\ \sin({m\theta_1}) \\ \sin({m\theta_1}) \\  ... \\ \sin({m\theta_{\frac{d}{2} -1}}) \\ \sin({m\theta_{\frac{d}{2} -1}})
 \end{bmatrix}
 \odot
 \begin{bmatrix}
-- q_2 \\
-q_1 \\
-- q_4 \\
-q_3 \\
+- q_1 \\
+q_0 \\
+- q_3 \\
+q_2 \\
 ... \\
-- q_d \\
-q_{d - 1} \\
+- q_{d - 1} \\
+q_{d - 2} \\
 \end{bmatrix}
 }
 $$
@@ -693,11 +693,11 @@ So now,
 $$
 \mathbf{Q'} = \left[
 \begin{array}{c}
-\hphantom{-}\whitetextemdash q_0^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_1^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_2^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_0^{,T}--- \hphantom{-} \\
+\hphantom{-}--- q_1^{,T}--- \hphantom{-} \\
+\hphantom{-}--- q_2^{,T}--- \hphantom{-} \\
 ...\\
-\hphantom{-}\whitetextemdash q_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_{N-1}^{,T}--- \hphantom{-} \\
 \end{array}
 \right]
 $$
@@ -705,20 +705,20 @@ $$
 $$
 = \tiny{
 \begin{bmatrix}
-\cos({0\theta_1}) & \cos({0\theta_1}) & \cos({0\theta_2}) & \cos({0\theta_2}) &  ... & \cos({0\theta_{d/2}}) & \cos({0\theta_{d/2}}) \\
-\cos({1\theta_1}) & \cos({1\theta_1}) & \cos({1\theta_2}) & \cos({1\theta_2}) &  ... & \cos({1\theta_{d/2}}) & \cos({1\theta_{d/2}}) \\
+\cos({0\theta_0}) & \cos({0\theta_0}) & \cos({0\theta_1}) & \cos({0\theta_1}) &  ... & \cos({0\theta_{\frac{d}{2} -1}}) & \cos({0\theta_{\frac{d}{2} -1}}) \\
+\cos({1\theta_0}) & \cos({1\theta_0}) & \cos({1\theta_1}) & \cos({1\theta_1}) &  ... & \cos({1\theta_{\frac{d}{2} -1}}) & \cos({1\theta_{\frac{d}{2} -1}}) \\
 . \\
 .\\
 . \\
-\cos({(N-1)\theta_1}) & \cos({(N-1)\theta_1}) & \cos({(N-1)\theta_2}) & \cos({(N-1)\theta_2}) &  ... & \cos({(N-1)\theta_{d/2}}) & \cos({(N-1)\theta_{d/2}}) \\
+\cos({(N-1)\theta_1}) & \cos({(N-1)\theta_1}) & \cos({(N-1)\theta_2}) & \cos({(N-1)\theta_2}) &  ... & \cos({(N-1)\theta_{\frac{d}{2} -1}}) & \cos({(N-1)\theta_{\frac{d}{2} -1}}) \\
 \end{bmatrix} \odot 
 \left[
 \begin{array}{c}
-\hphantom{-}\whitetextemdash q_0^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_1^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash q_2^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_0^{,T}--- \hphantom{-} \\
+\hphantom{-}--- q_1^{,T}--- \hphantom{-} \\
+\hphantom{-}--- q_2^{,T}--- \hphantom{-} \\
 ...\\
-\hphantom{-}\whitetextemdash q_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- q_{N-1}^{,T}--- \hphantom{-} \\
 \end{array}
 \right]
 }
@@ -731,21 +731,21 @@ $$
 $$
 \tiny{
 \begin{bmatrix}
-\sin({0\theta_1}) & \sin({0\theta_1}) & \sin({0\theta_2}) & \sin({0\theta_2}) &  ... & \sin({0\theta_{d/2}}) & \sin({0\theta_{d/2}}) \\
-\sin({1\theta_1}) & \sin({1\theta_1}) & \sin({1\theta_2}) & \sin({1\theta_2}) &  ... & \sin({1\theta_{d/2}}) & \sin({1\theta_{d/2}}) \\
+\sin({0\theta_0}) & \sin({0\theta_0}) & \sin({0\theta_1}) & \sin({0\theta_1}) &  ... & \sin({0\theta_{\frac{d}{2} -1}}) & \sin({0\theta_{\frac{d}{2} -1}}) \\
+\sin({1\theta_0}) & \sin({1\theta_0}) & \sin({1\theta_1}) & \sin({1\theta_1}) &  ... & \sin({1\theta_{\frac{d}{2} -1}}) & \sin({1\theta_{\frac{d}{2} -1}}) \\
 . \\
 .\\
 . \\
-\sin({(N-1)\theta_1}) & \sin({(N-1)\theta_1}) & \sin({(N-1)\theta_2}) & \sin({(N-1)\theta_2}) &  ... & \sin({(N-1)\theta_{d/2}}) & \sin({(N-1)\theta_{d/2}}) \\
+\sin({(N-1)\theta_0}) & \sin({(N-1)\theta_0}) & \sin({(N-1)\theta_1}) & \sin({(N-1)\theta_1}) &  ... & \sin({(N-1)\theta_{\frac{d}{2} -1}}) & \sin({(N-1)\theta_{\frac{d}{2} -1}}) \\
 \end{bmatrix}
 \odot 
 \left[
 \begin{array}{c}
-\hphantom{-}\whitetextemdash \text{rearranged-q}_0^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash \text{rearranged-q}_1^{,T}\whitetextemdash \hphantom{-} \\
-\hphantom{-}\whitetextemdash \text{rearranged-q}_2^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- \text{rearranged-q}_0^{,T}--- \hphantom{-} \\
+\hphantom{-}--- \text{rearranged-q}_1^{,T}--- \hphantom{-} \\
+\hphantom{-}--- \text{rearranged-q}_2^{,T}--- \hphantom{-} \\
 ...\\
-\hphantom{-}\whitetextemdash \text{rearranged-q}_{N-1}^{,T}\whitetextemdash \hphantom{-} \\
+\hphantom{-}--- \text{rearranged-q}_{N-1}^{,T}--- \hphantom{-} \\
 \end{array}
 \right]
 }
@@ -755,13 +755,13 @@ where $\text{rearranged-q}_i$ is
 
 $$
 \begin{bmatrix}
-- q^i_2 \\
-q^i_1 \\
-- q^i_4 \\
-q^i_3 \\
+- q^i_1 \\
+q^i_0 \\
+- q^i_3 \\
+q^i_2 \\
 ... \\
-- q^i_d \\
-q^i_{d - 1} \\
+- q^i_{d-1} \\
+q^i_{d - 2} \\
 \end{bmatrix}
 $$
 
@@ -824,6 +824,60 @@ array([[ 1.78862847,  0.43650985,  0.09649747, -1.8634927 ],
        [-0.81390684,  1.4235748 ,  1.02561261, -1.06090267]])
 ```
 
-which is the same result you get using the "naive" python approach! This approach is also how the HuggingFace repository and other repositories implement rotary positional embeddings. 
+which is the same result you get using the "naive" python approach! This approach is also how the HuggingFace repository and other repositories implement rotary positional embeddings.
+
+However, due to computational efficiency reasons, you'll see the `rotate_every_two` function not implemented in that interleaved way. For example in the [HuggingFace code for Llama](https://github.com/huggingface/transformers/blob/1749841a0e9d803984985e08e4df177ac5a8b1a9/src/transformers/models/llama/modeling_llama.py#L179-L183), you'll see this function instead:
+
+```python
+def rotate_half(x):
+    """Rotates half the hidden dims of the input."""
+    x1 = x[..., : x.shape[-1] // 2]
+    x2 = x[..., x.shape[-1] // 2 :]
+    return torch.cat((-x2, x1), dim=-1)
+
+
+def apply_rotary_pos_emb(q, k, cos, sin, position_ids=None, unsqueeze_dim=1):
+    """Applies Rotary Position Embedding to the query and key tensors.
+
+    Args:
+        q (`torch.Tensor`): The query tensor.
+        k (`torch.Tensor`): The key tensor.
+        cos (`torch.Tensor`): The cosine part of the rotary embedding.
+        sin (`torch.Tensor`): The sine part of the rotary embedding.
+        position_ids (`torch.Tensor`, *optional*):
+            Deprecated and unused.
+        unsqueeze_dim (`int`, *optional*, defaults to 1):
+            The 'unsqueeze_dim' argument specifies the dimension along which to unsqueeze cos[position_ids] and
+            sin[position_ids] so that they can be properly broadcasted to the dimensions of q and k. For example, note
+            that cos[position_ids] and sin[position_ids] have the shape [batch_size, seq_len, head_dim]. Then, if q and
+            k have the shape [batch_size, heads, seq_len, head_dim], then setting unsqueeze_dim=1 makes
+            cos[position_ids] and sin[position_ids] broadcastable to the shapes of q and k. Similarly, if q and k have
+            the shape [batch_size, seq_len, heads, head_dim], then set unsqueeze_dim=2.
+    Returns:
+        `tuple(torch.Tensor)` comprising of the query and key tensors rotated using the Rotary Position Embedding.
+    """
+    cos = cos.unsqueeze(unsqueeze_dim)
+    sin = sin.unsqueeze(unsqueeze_dim)
+    q_embed = (q * cos) + (rotate_half(q) * sin)
+    k_embed = (k * cos) + (rotate_half(k) * sin)
+    return q_embed, k_embed
+```
+So instead of interleaving the (negative) even and odd dimensional elements of each input tensor as is the case in $\text{rearranged-q}_i$, they just take the last half of the tensor, negate it, and concatenate it with the first half. So in this case $\text{rearranged-q}_i$ is 
+
+$$
+\begin{bmatrix}
+- q_{\frac{d}{2}} \\
+- q_{\frac{d}{2} + 1} \\
+- q_{\frac{d}{2} + 2} \\
+... \\
+- q_{d - 1} \\
+q_0 \\
+q_1 \\
+... \\
+q_{\frac{d}{2} - 1} \\
+\end{bmatrix}
+$$
+
+While it doesn't do the exact same thing, the main aim - that $\mathbf{k'}^{T}_{m}\mathbf{q'}_{n}$ is dependent on $m - n$ is still achieved. You can see that this is indeed the case by substituting $\text{rearranged-q}_n$ and $\text{rearranged-k}_n$ back into $\mathbf{q'}_{n}, \mathbf{k'}^{T}_{m}$ respectively, and then writing out the multiplication. To see that this is the case.
 
 Hopefully that has been a useful discourse in rotary positional embeddings!

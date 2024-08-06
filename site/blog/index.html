@@ -634,114 +634,15 @@
 <p>DISCLAIMER: If you spot an error, please feel free to email me. </p>
 <p>The "Understanding Deep Learning" book has recently come out (you can look at it <a href="https://udlbook.github.io/udlbook/">here</a>, this post refers to the 2023-05-08 version), and is a great resource. In the appendices, it contains several statements which can be non-obvious to those of us who have been out of touch with linear algebra in our day jobs. </p>
 <p>Here is one such statement: </p>
-<p>"The Lipschitz constant of a linear transformation $$ f[z] = Az + b $$ is equal to the maximum eigenvalue of the matrix A."</p>
+<p>"The Lipschitz constant of a linear transformation <span class="arithmatex">\(f[z] = Az + b\)</span> is equal to the maximum eigenvalue of the matrix A."</p>
 <p>This is not an obvious result at all. Let us try and break this down step by step.</p>
-<h3 id="definitions"><a class="toclink" href="2024/08/05/lipschitz-constant-of-a-linear-transformation/#definitions">Definitions</a></h3>
-<h4 id="lipschitz-constant"><a class="toclink" href="2024/08/05/lipschitz-constant-of-a-linear-transformation/#lipschitz-constant">Lipschitz constant</a></h4>
-<p>A function <span class="arithmatex">\(<span class="arithmatex">\(f[z]\)</span>\)</span> is Lipschitz continuous if for all $$ z1,z2 $$:</p>
-<div class="arithmatex">\[
-|f[z1] − f[z2]| ≤ β|z1 − z2|,
-\]</div>
-<p>The value $$ \beta $$ is called the Lipschitz constant. Both definitions are taken from the UDL book in the link above.</p>
-<h4 id="vector-norm"><a class="toclink" href="2024/08/05/lipschitz-constant-of-a-linear-transformation/#vector-norm">Vector norm</a></h4>
-<p>The following definitions are lifted from this very useful resource <a href="https://www.math.drexel.edu/~foucart/TeachingFiles/F12/M504Lect6.pdf">here</a> (Definition 3)</p>
-<p>Let <span class="arithmatex">\(<span class="arithmatex">\(\mathcal{V}\)</span>\)</span> be a vector space over a field $$ \mathbb{R} $$. A function $$ \lvert{.}\rvert : \mathcal{V} → \mathbb{R}$$ is called a (vector) norm if</p>
-<ol>
-<li>$$ \lvert x \rvert ≥ 0 $$ for all $$ x ∈ \mathcal{V} $$ , with equality iff x = 0, [positivity]</li>
-<li>$$ \lvert λx \rvert = \lvertλ \rvert \lvert x \rvert $$ for all λ ∈ $$ \mathbb{K} $$ and x ∈ V , [homogeneity] (reminder $$ \mathbb{K} ∈ {\mathbb{R}, \mathbb{C} }$$, i.e. either real or complex)</li>
-<li>$$ \lvert x + y \rvert ≤ \lvert x \rvert + \lvert y \rvert $$for all x, y ∈ V . [triangle inequality]</li>
-</ol>
-<p>An example of such a norm would be an expression as follows for $$ p \geq 1 $$: </p>
-<div class="arithmatex">\[
-|x|_p = [|x_1|^p + |x_2|^p + |x_3|^p + ... ]^{\frac{1}{p}}
-\]</div>
-<h4 id="matrix-norm"><a class="toclink" href="2024/08/05/lipschitz-constant-of-a-linear-transformation/#matrix-norm">Matrix norm</a></h4>
-<p>Also from the above resource (Definition 7)</p>
-<p>A function 
-$$ || .||: \mathcal{M} \rightarrow \mathbb{C} $$
-is a matrix norm if:</p>
-<ol>
-<li>
-<p>$$||A|| \geq 0 $$ for all 
-$$ A \in \mathcal{M}$$ with equality iff x = 0 [positivity]</p>
-</li>
-<li>
-<p>$$ ||\lambda A|| = |\lambda| ||A|| $$ for all
-<span class="arithmatex">\(<span class="arithmatex">\(\lambda \in \mathbb{C}\)</span>\)</span> and
-$$ A \in \mathcal{M}$$ [homogeneity]</p>
-</li>
-<li>
-<p>$$||A + B|| \leq ||A|| + ||B|| $$ for all
-<span class="arithmatex">\(<span class="arithmatex">\(A, B \in \mathcal{M}\)</span>\)</span>  [triangle inequality]</p>
-</li>
-<li>
-<p>$$ ||AB|| \leq ||A|| ||B|| $$ for all
-$$A, B \in \mathcal{M} $$ [submultiplicativity]</p>
-</li>
-</ol>
-<p>The last property, submultiplicativity, deserves some more attention. It uses a more general definition of matrix norm which is </p>
-<div class="arithmatex">\[
-||A|| = \text{sup}\{|Ax|: x \in \mathcal{V}, |x| \leq 1 \} \\ 
-= \text{sup}\{\frac{|Ax|}{|x|}: x \in \mathcal{V}, x \neq 0 \}
-\]</div>
-<p>(lots of resources use this definition, for clarification of max vs sup, look <a href="https://math.stackexchange.com/questions/3575425/why-supremum-not-max-in-definition-of-matrix-norm">here</a>).</p>
-<p>An intermediate result we can now prove is the following (or you could also just look <a href="https://math.stackexchange.com/questions/1513399/ax%E2%89%A4-a-x-space-forall-x-in-mathbbrn-rudins-principles">here</a>):</p>
-<div class="arithmatex">\[ |Ax| \leq ||A|| |x|, \, \forall x \in \mathbb{R}^n \]</div>
-<p>The proof in the top answer of the above link from Stackoverflow is copied below for ease of reference: </p>
-<p>By definition $$ ‖𝐴‖= \text{sup} {|Ax|, x ∈ \mathbb{R}^n, |x| ≤ 1 } $$ and hence for any 
-$$ x \in \mathbb{R}^n $$ such that 
-$$ |x| \leq 1 $$ we must have by the definition of supremum that 
-$$ |Ax| \leq ||A|| $$ </p>
-<p>The $$ x = 0 $$ case is trivial.</p>
-<p>For the $$ x \neq 0 $$ case: </p>
-<p>Let 
-$$ y = \frac{x}{|x|} $$.
-It follows that $$ |y| = 1 $$, and hence $$ |Ay| \leq ||A|| $$ from above.</p>
-<p>Now we have </p>
-<div class="arithmatex">\[ |Ay| = | A \frac{x}{|x|} | = \frac{|Ax|}{|x|} \]</div>
-<p>Therefore, since 
-$$|x|&gt;0 $$,
-we have
-$$ |Ax|=|Ay||x|≤ ||A|| |x| $$</p>
-<h3 id="tying-it-all-together"><a class="toclink" href="2024/08/05/lipschitz-constant-of-a-linear-transformation/#tying-it-all-together">Tying it all together</a></h3>
-<p>Now, we can look at the Lipschitz constant of a linear transformation $$ f[z] = Az + b $$.</p>
-<p>$$
-|f[z1] − f[z2]| = |Az_1 - Az_2| \</p>
-<p>= |A(z_1 - z_2)| \</p>
-<p>\leq ||A|| |z_1 - z_2|
-$$</p>
-<p>The last step is using the same intermediate property we proved when showing the proof for submultiplicativity.</p>
-<p>This is the general case - the Lipschitz constant of a linear transform will be the matrix norm of the matrix $$ A $$.</p>
-<p>We need one more step to prove the claim in the book, and I think that involves deviating away from the general case.</p>
-<p>I am going to be following some of the material <a href="https://www.sjsu.edu/faculty/guangliang.chen/Math253S20/lec7matrixnorm.pdf">here</a>. When the 2-norm is used, the induced matrix operator is the following (called the spectral norm):</p>
-<div class="arithmatex">\[
-||A||_2 = \text{max}_{x \neq 0} \{ \frac{|Ax|_2}{|x|_2} \}
-\]</div>
-<p>It is a known result for the 2-norm that 
-$$ |y|_2^2 = y^Ty $$</p>
-<p>So let us take the square of the induced matrix operator.</p>
-<div class="arithmatex">\[
-||A||_2^2 = \text{max}_{x \neq 0} \{ \frac{|Ax|_2^2}{|x|_2^2} \} \\
-= \text{max}_{x \neq 0} \{ \frac{x^TA^TAx}{x^Tx} \}
-\]</div>
-<p>We will need to use concepts from singular value decomposition (SVD). <a href="https://math.mit.edu/classes/18.095/2016IAP/lec2/SVD_Notes.pdf">This</a> resource might help. The "trick" is to write A as</p>
-<p>$$
-A = U\Sigma V^T
-$$
-and then write $$ A^TA = (U\Sigma V<sup>T)</sup>T (U\Sigma V^T) = V \Sigma^T \Sigma V $$, where $$ \Sigma $$ is a diagonal matrix with the eigenvalues of A in the diagonal.</p>
-<p>Let $$ \lambda_1 $$ be the largest eigenvalue of A. Then, the maximum value of the ratio of $$ \frac{x<sup>TA</sup>TAx}{x^Tx} $$ can be shown to be $$ \lambda_1^2 $$.</p>
-<p>That was the final step - showing 
-$$ ||A||_2^2 = \lambda_1^2 $$,
-i.e. $$ ||A||_2 = \lambda_1 $$</p>
-<p>So therefore, </p>
-<p>$$
-|f[z1] − f[z2]|_2 = |Az_1 - Az_2|_2 \</p>
-<p>= |A(z_1 - z_2)|_2 \</p>
-<p>\leq ||A||_2 |z_1 - z_2|_2 \
-= \lambda_1 |z_1 - z_2|
-$$</p>
-<p>Other resources: 
-1. I found <a href="https://www.math.drexel.edu/~foucart/TeachingFiles/F12/M504Lect5.pdf">this</a> from Drexel University to also be quite helpful</p>
+
+    
+      <nav class="md-post__action">
+        <a href="2024/08/05/lipschitz-constant-of-a-linear-transformation/">
+          Continue reading
+        </a>
+      </nav>
     
   </div>
 </article>
@@ -758,7 +659,7 @@ $$</p>
           
           <li class="md-meta__item">
             
-              19 min read
+              20 min read
             
           </li>
         
