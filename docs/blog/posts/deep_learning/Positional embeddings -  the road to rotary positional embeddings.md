@@ -880,4 +880,4 @@ $$
 
 While it doesn't do the exact same thing, the main aim - that $\mathbf{k'}^{T}_{m}\mathbf{q'}_{n}$ is dependent on $m - n$ is still achieved. You can see that this is indeed the case by substituting $\text{rearranged-q}_n$ and $\text{rearranged-k}_n$ back into $\mathbf{q'}_{n}, \mathbf{k'}^{T}_{m}$ respectively, and then writing out the multiplication. To see that this is the case.
 
-Hopefully that has been a useful discourse in rotary positional embeddings!
+Hopefully this has been a useful discourse in rotary positional embeddings!
