@@ -56,7 +56,7 @@ How would you implement this in Pytorch? The author of the original paper (Profe
 
 The concept though is simple enough, and can be re-written in PyTorch for any generic `nn.Module` subclass
 
-Below is how I'd implement MAML at a high level using PyTorch. Some syntactical liberties have been taken, and this code won't necessarily work if you copy paste it. Even if it did, it is probably going to be slow, but you should be able to work around it by optimising individual components. 
+Below is how I'd implement MAML at a high level using PyTorch. Some syntactical liberties have been taken, and this code won't necessarily work if you copy paste it. Even if it did, it is probably going to be slow, but you should be able to work around it by optimizing individual components. 
 
 
 ```python
@@ -252,7 +252,7 @@ tensor(7200.)
 
 ### Run time comparisons of 2 different ways of doing vanilla SGD
 
-Another thing to notice in the MAML code is the fact that in the `inner_loop`, we are simply doing gradient descent on the inner parameters. In `pytorch`, there are classes such as `torch.optim.SGD` that do this for us, and that we use in regular training loops for standard deep learning model training. It is possible to rewrite the entire code of the `inner_loop` to use these built in classes of optimisers, but is there a cost? 
+Another thing to notice in the MAML code is the fact that in the `inner_loop`, we are simply doing gradient descent on the inner parameters. In `pytorch`, there are classes such as `torch.optim.SGD` that do this for us, and that we use in regular training loops for standard deep learning model training. It is possible to rewrite the entire code of the `inner_loop` to use these built in classes of optimizers, but is there a cost? 
 
 Beyond issues of readability - using `torch.optim.SGD` does the updates of the model parameters implicitly, and is therefore something I do not like - is there a hit we are taking performance-wise when we write the `for` loops ourselves in the `inner_loop`?
 
@@ -633,3 +633,23 @@ This is what the MAML update is about. This is what we mean by
 The outer update must differentiate through the inner loop (the adaptation step).
 ```
 right at the top of the article!
+
+#### Visualisation using torchviz
+
+Using the [torchviz library](https://github.com/szagoruyko/pytorchviz), you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do `create_graph=True`. The code to visualise our above examples are as simple as the following lines:
+```python
+from torchviz import make_dot
+
+# after defining outer_loss:
+dot_ = make_dot(outer_loss, params={'x': x})
+dot_.render("graph1", format="png")
+
+```
+
+Graph for when `create_graph=False`
+![alt text](../../images/torch_viz_with_create_graph=False.png)
+
+Graph for when `create_graph=True`
+
+![alt text](../../images/torch_viz_with_create_graph=True.png)
+you can see that there is an extra branch coming out of the `CloneBackward0` node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor `x`. 

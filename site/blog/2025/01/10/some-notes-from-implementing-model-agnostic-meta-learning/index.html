@@ -554,6 +554,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="create_graph=True">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-using-torchviz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualisation using torchviz
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -610,7 +625,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7h1.5Z"/></svg>
                           <span class="md-ellipsis">
                             
-                              13 min read
+                              14 min read
                             
                           </span>
                         </div>
@@ -671,7 +686,7 @@ for _ in range(num_outer_steps):
 <h3 id="non-optimized-pytorch-code-for-using-maml-on-any-generic-nnmodule">Non-optimized pytorch code for using MAML on any generic nn.Module<a class="headerlink" href="#non-optimized-pytorch-code-for-using-maml-on-any-generic-nnmodule" title="Permanent link">&para;</a></h3>
 <p>How would you implement this in Pytorch? The author of the original paper (Professor Chelsea Finn) used ConvNets as an example, and <a href="https://github.com/cbfinn/maml/blob/master/maml.py">did so</a> in TensorFlow V1 which is not readable for mere mortals.</p>
 <p>The concept though is simple enough, and can be re-written in PyTorch for any generic <code>nn.Module</code> subclass</p>
-<p>Below is how I'd implement MAML at a high level using PyTorch. Some syntactical liberties have been taken, and this code won't necessarily work if you copy paste it. Even if it did, it is probably going to be slow, but you should be able to work around it by optimising individual components. </p>
+<p>Below is how I'd implement MAML at a high level using PyTorch. Some syntactical liberties have been taken, and this code won't necessarily work if you copy paste it. Even if it did, it is probably going to be slow, but you should be able to work around it by optimizing individual components. </p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
@@ -851,7 +866,7 @@ for _ in range(num_outer_steps):
 <span class="sd">&quot;&quot;&quot;</span>
 </code></pre></div>
 <h3 id="run-time-comparisons-of-2-different-ways-of-doing-vanilla-sgd">Run time comparisons of 2 different ways of doing vanilla SGD<a class="headerlink" href="#run-time-comparisons-of-2-different-ways-of-doing-vanilla-sgd" title="Permanent link">&para;</a></h3>
-<p>Another thing to notice in the MAML code is the fact that in the <code>inner_loop</code>, we are simply doing gradient descent on the inner parameters. In <code>pytorch</code>, there are classes such as <code>torch.optim.SGD</code> that do this for us, and that we use in regular training loops for standard deep learning model training. It is possible to rewrite the entire code of the <code>inner_loop</code> to use these built in classes of optimisers, but is there a cost? </p>
+<p>Another thing to notice in the MAML code is the fact that in the <code>inner_loop</code>, we are simply doing gradient descent on the inner parameters. In <code>pytorch</code>, there are classes such as <code>torch.optim.SGD</code> that do this for us, and that we use in regular training loops for standard deep learning model training. It is possible to rewrite the entire code of the <code>inner_loop</code> to use these built in classes of optimizers, but is there a cost? </p>
 <p>Beyond issues of readability - using <code>torch.optim.SGD</code> does the updates of the model parameters implicitly, and is therefore something I do not like - is there a hit we are taking performance-wise when we write the <code>for</code> loops ourselves in the <code>inner_loop</code>?</p>
 <p>To test this, let's look at the code snippet below, which is basically comparing the runtime of a method that does gradient descent using a python for-loop "by hand" in <code>calculate_using_grad</code>, and one that uses <code>torch.optim.SGD</code> in <code>calculate_using_optim</code>. To prove that the final results are the same, there is also a method <code>compare_models_close</code>. </p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">torch</span>
@@ -1183,6 +1198,19 @@ previous section
 <div class="highlight"><pre><span></span><code>The outer update must differentiate through the inner loop (the adaptation step).
 </code></pre></div>
 right at the top of the article!</p>
+<h4 id="visualisation-using-torchviz">Visualisation using torchviz<a class="headerlink" href="#visualisation-using-torchviz" title="Permanent link">&para;</a></h4>
+<p>Using the <a href="https://github.com/szagoruyko/pytorchviz">torchviz library</a>, you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do <code>create_graph=True</code>. The code to visualise our above examples are as simple as the following lines:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">torchviz</span> <span class="kn">import</span> <span class="n">make_dot</span>
+
+<span class="c1"># after defining outer_loss:</span>
+<span class="n">dot_</span> <span class="o">=</span> <span class="n">make_dot</span><span class="p">(</span><span class="n">outer_loss</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">})</span>
+<span class="n">dot_</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;graph1&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Graph for when <code>create_graph=False</code>
+<img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DFalse.png" /></p>
+<p>Graph for when <code>create_graph=True</code></p>
+<p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DTrue.png" />
+you can see that there is an extra branch coming out of the <code>CloneBackward0</code> node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor <code>x</code>. </p>
 
 
 
