@@ -636,7 +636,9 @@ right at the top of the article!
 
 #### Visualisation using torchviz
 
-Using the [torchviz library](https://github.com/szagoruyko/pytorchviz), you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do `create_graph=True`. The code to visualise our above examples are as simple as the following lines:
+Using the [torchviz library](https://github.com/szagoruyko/pytorchviz), you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do `create_graph=True`.
+
+The code to visualise our above examples are as simple as the following lines:
 
 ```python
 from torchviz import make_dot
