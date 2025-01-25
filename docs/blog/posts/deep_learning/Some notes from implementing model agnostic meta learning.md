@@ -637,6 +637,7 @@ right at the top of the article!
 #### Visualisation using torchviz
 
 Using the [torchviz library](https://github.com/szagoruyko/pytorchviz), you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do `create_graph=True`. The code to visualise our above examples are as simple as the following lines:
+
 ```python
 from torchviz import make_dot
 
@@ -647,9 +648,11 @@ dot_.render("graph1", format="png")
 ```
 
 Graph for when `create_graph=False`
+
 ![alt text](../../images/torch_viz_with_create_graph=False.png)
 
 Graph for when `create_graph=True`
 
 ![alt text](../../images/torch_viz_with_create_graph=True.png)
-you can see that there is an extra branch coming out of the `CloneBackward0` node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor `x`. 
+
+You can see that there is an extra branch coming out of the `CloneBackward0` node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor `x`. 

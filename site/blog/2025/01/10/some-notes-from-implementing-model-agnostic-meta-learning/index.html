@@ -1206,8 +1206,8 @@ right at the top of the article!</p>
 <span class="n">dot_</span> <span class="o">=</span> <span class="n">make_dot</span><span class="p">(</span><span class="n">outer_loss</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">})</span>
 <span class="n">dot_</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;graph1&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
 </code></pre></div></p>
-<p>Graph for when <code>create_graph=False</code>
-<img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DFalse.png" /></p>
+<p>Graph for when <code>create_graph=False</code></p>
+<p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DFalse.png" /></p>
 <p>Graph for when <code>create_graph=True</code></p>
 <p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DTrue.png" />
 you can see that there is an extra branch coming out of the <code>CloneBackward0</code> node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor <code>x</code>. </p>
