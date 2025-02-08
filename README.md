@@ -56,3 +56,16 @@ By default, the sections and pages will follow the folder structure within `/doc
 - [mathieudutour/gatsby-digital-garden: digital garden with Gatsby](https://github.com/mathieudutour/gatsby-digital-garden)
 - [TuanManhCao/digital-garden: Free Obisidian Publish alternative](https://github.com/TuanManhCao/digital-garden)
 
+## Math notes
+
+To do multi-lined equations properly, use the `\aligned` environment, like this: 
+
+$$
+\begin{aligned}
+H(X,Y) &= -\sum\sum p(x,y)\log p(x,y) \\
+&= -\sum\sum p(x,y)\log p(x)p(y|x) \\
+&= -\sum\sum p(x,y)\log p(x) - \sum\sum p(x,y)\log p(y|x) \\
+&= -\sum p(x)\log p(x) - \sum\sum p(x,y)\log p(y|x) \\
+&= H(X) + H(Y|X)
+\end{aligned}
+$$

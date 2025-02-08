@@ -14,6 +14,8 @@
         <link rel="prev" href="../../../../2024/08/09/various-observations-on-multiprocessing-in-python/">
       
       
+        <link rel="next" href="../../../02/06/notes-on-information-theory-for-meta-learning/">
+      
       
         <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../../../../feed_rss_created.xml">
         <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../../../../feed_rss_updated.xml">
@@ -1199,18 +1201,19 @@ previous section
 </code></pre></div>
 right at the top of the article!</p>
 <h4 id="visualisation-using-torchviz">Visualisation using torchviz<a class="headerlink" href="#visualisation-using-torchviz" title="Permanent link">&para;</a></h4>
-<p>Using the <a href="https://github.com/szagoruyko/pytorchviz">torchviz library</a>, you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do <code>create_graph=True</code>. The code to visualise our above examples are as simple as the following lines:
+<p>Using the <a href="https://github.com/szagoruyko/pytorchviz">torchviz library</a>, you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do <code>create_graph=True</code>.</p>
+<p>The code to visualise our above examples are as simple as the following lines:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">torchviz</span> <span class="kn">import</span> <span class="n">make_dot</span>
 
 <span class="c1"># after defining outer_loss:</span>
 <span class="n">dot_</span> <span class="o">=</span> <span class="n">make_dot</span><span class="p">(</span><span class="n">outer_loss</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">})</span>
 <span class="n">dot_</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;graph1&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <p>Graph for when <code>create_graph=False</code></p>
 <p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DFalse.png" /></p>
 <p>Graph for when <code>create_graph=True</code></p>
-<p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DTrue.png" />
-you can see that there is an extra branch coming out of the <code>CloneBackward0</code> node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor <code>x</code>. </p>
+<p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DTrue.png" /></p>
+<p>You can see that there is an extra branch coming out of the <code>CloneBackward0</code> node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor <code>x</code>. </p>
 
 
 

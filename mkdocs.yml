@@ -85,7 +85,6 @@ extra_javascript:
   # - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML
   - https://unpkg.com/mermaid/dist/mermaid.min.js
 
-
 extra:
   copyright: "Created by Mondal"
 

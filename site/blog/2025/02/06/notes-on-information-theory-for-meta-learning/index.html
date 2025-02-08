@@ -1,0 +1,1025 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://avishek-mondal.github.io/digital-garden/blog/2025/02/06/notes-on-information-theory-for-meta-learning/">
+      
+      
+        <link rel="prev" href="../../../01/10/some-notes-from-implementing-model-agnostic-meta-learning/">
+      
+      
+      
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../../../../feed_rss_created.xml">
+        <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../../../../feed_rss_updated.xml">
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.29">
+    
+    
+      
+        <title>Notes on information theory for meta-learning - mondalogue</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.76a95c52.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../css/custom.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#background" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="mondalogue" class="md-header__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            mondalogue
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Notes on information theory for meta-learning
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="mondalogue" class="md-nav__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    mondalogue
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Blog
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Blog
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hello!
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Archive
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2025/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2025
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2024/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2024
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Categories
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Categories
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/algorithms/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    algorithms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      Background
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jensens-inequality" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jensen's inequality
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Jensen's inequality">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#definition-of-convex-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Definition of convex functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extension-to-the-general-x_n-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extension to the general \(x_n\) case
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#putting-it-all-together" class="md-nav__link">
+    <span class="md-ellipsis">
+      Putting it all together
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mutual-information-entropy-et-al" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mutual information, entropy et al
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mutual information, entropy et al">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#definitions-and-some-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Definitions and some results
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chain rules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#back-to-the-equation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Back to the equation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                        <time datetime="2025-02-06 00:00:00" class="md-ellipsis">February 6, 2025</time>
+                      </div>
+                    </li>
+                    
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7h1.5Z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              11 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+
+
+  <h1>Notes on information theory for meta-learning</h1>
+
+<p>When reading the "<a href="https://arxiv.org/pdf/1912.03820">Meta-Learning without Memorization</a>" paper, there were several derivations that caught me off-guard. So, I'm going to put some basic derivations to paper to refer to in the future that will make reading papers easier. </p>
+<!-- more -->
+
+<p>The main aim of this post is to figure out why for this plate diagram from the paper: </p>
+<p><img alt="Pasted image 20250207142509.png" src="../../../../images/Pasted%20image%2020250207142509.png" /></p>
+<p>results in equation 2: </p>
+<div class="arithmatex">\[
+\newcommand{\y}{\hat{y}^*}
+\newcommand{\z}{z^*}
+\newcommand{\x}{x^*}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\xx}{\mathbb{x}}
+\newcommand{\yy}{\mathbb{y}}
+\begin{aligned}
+&amp;I(\hat{y}^*;\mathcal{D}|z^*,\theta) \\
+&amp;\geq I(x^*;\hat{y}^*|\theta,z^*) \\
+&amp;= I(x^*;\hat{y}^*|\theta) - I(x^*;z^*|\theta) + I(x^*;z^*|\hat{y}^*,\theta) \\
+&amp;\geq I(x^*;\hat{y}^*|\theta) - I(x^*;z^*|\theta) \\
+&amp;= I(x^*;\hat{y}^*|\theta) - \mathbb{E}_{p(x^*)q(z^*|x^*,\theta)}\left[\log\frac{q(z^*|x^*,\theta)}{q(z^*|\theta)}\right] \\
+&amp;\geq I(x^*;\hat{y}^*|\theta) - \mathbb{E}\left[\log\frac{q(z^*|x^*,\theta)}{r(z^*)}\right] = I(x^*;\hat{y}^*|\theta) - \mathbb{E}[D_{KL}(q(z^*|x^*,\theta)||r(z^*))]
+\end{aligned}
+\]</div>
+<p>As a recap, the meta-learning setup is the following according to the paper: We assume tasks <span class="arithmatex">\(\T_i\)</span> are sampled from a distribution of tasks <span class="arithmatex">\(p(\T)\)</span> - for example the Omniglot dataset. For each task during <strong>meta-training</strong>, the model sees a set of training data <span class="arithmatex">\(\D_i = (\mathbb{x}_i, \mathbb{y}_i)\)</span> and a set of test data <span class="arithmatex">\(D^*_i = (\mathbb{x}^*_i, \mathbb{y}^*_i)\)</span> where <span class="arithmatex">\(\xx_i, \yy_i, \xx^*_i, \yy^*_i\)</span> are sampled from <span class="arithmatex">\(p(x, y|\T_i)\)</span>. The model's prediction at test time for the task is denoted as <span class="arithmatex">\(\y\)</span>. </p>
+<p>Obviously, don't show the rest of the article below to mathematicians, they'll probably nitpick and be generally miserable like they all are about not being pedantic around some notation or another.</p>
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<p>Let's cover a few background maths information we need.</p>
+<h3 id="jensens-inequality">Jensen's inequality<a class="headerlink" href="#jensens-inequality" title="Permanent link">&para;</a></h3>
+<p>The first is Jensen's inequality. But even before we get to that, let's show some basic things. </p>
+<h4 id="definition-of-convex-functions">Definition of convex functions<a class="headerlink" href="#definition-of-convex-functions" title="Permanent link">&para;</a></h4>
+<p>Basically, a convex function are functions like the one below: </p>
+<p><img alt="Jensen's inequality drawing 1.png" src="../../../../images/Jensen%27s%20inequality%20drawing%201.png" /></p>
+<p>In these functions, a line passing through two points of the function will be above the graph of the function itself. </p>
+<p>To be more rigorous about this, let's consider a function <span class="arithmatex">\(f(x)\)</span>, and 2 points <span class="arithmatex">\(x_1, x_2\)</span>. Let's now consider a third point <span class="arithmatex">\(x'\)</span> somewhere between <span class="arithmatex">\(x_1, x2\)</span>. We can arbitrarily represent <span class="arithmatex">\(x' := x_1 + \alpha(x_2 - x_1)\)</span> for some <span class="arithmatex">\(a \in [0, 1]\)</span> - basically, if <span class="arithmatex">\(\alpha = 0 \implies x' = x_1, \alpha = 1 \implies x' = x_2\)</span>. </p>
+<p>In the diagram above <span class="arithmatex">\(y_{\text{curve}} = f(x') = f(x_1 + \alpha(x_2 - x_1)) = f((1 -\alpha)x_1 + \alpha x_2)\)</span>.</p>
+<p>And finally, </p>
+<div class="arithmatex">\[
+\frac{y_{\text{line}} - f(x_1)}{x' - x_1} =  \frac{f(x_2) - f(x_1)}{x_2 - x_1}
+\]</div>
+<div class="arithmatex">\[
+\implies y_{\text{line}} = \frac{f(x_2) - f(x_1)}{x_2 - x_1}(x' - x_1) + f(x_1)
+\]</div>
+<div class="arithmatex">\[
+= \frac{f(x_2) - f(x_1)}{x_2 - x_1}(x_1 + \alpha(x_2 - x_1) - x_1) + f(x_1)
+\]</div>
+<div class="arithmatex">\[
+= \alpha(f(x_2) - f(x_1)) + f(x_1) = (1 - \alpha)f(x_1) + f(x_2)
+\]</div>
+<p>The definition of a convex function is basically <span class="arithmatex">\(y_{\text{line}} &gt;= y_{\text{curve}}, \forall \alpha \in [0, 1]\)</span></p>
+<div class="arithmatex">\[
+\implies (1 - \alpha)f(x_1) + f(x_2) \geq f((1 -\alpha)x_1 + \alpha x_2)
+\]</div>
+<p>Examples of <em>concave</em> functions are log functions, while examples of convex functions are exponential functions. </p>
+<h4 id="extension-to-the-general-x_n-case">Extension to the general <span class="arithmatex">\(x_n\)</span> case<a class="headerlink" href="#extension-to-the-general-x_n-case" title="Permanent link">&para;</a></h4>
+<p>Following the definition of a convex function, we now make the following statement: 
+Given a convex function <span class="arithmatex">\(f\)</span>, and <span class="arithmatex">\(a_1, a_2, \dots a_n\)</span> for some <span class="arithmatex">\(n\)</span> such that <span class="arithmatex">\(\sum_i a_i = 1\)</span>,</p>
+<div class="arithmatex">\[
+f(a_1x_1 + a_2x_2 + \dots a_nx_n) \leq a_1f(x_1) + a_2f(x_2) + \dots + a_nf(x_n)
+\]</div>
+<p>To show the above result, you can use induction, by using the definition of a convex function as the base case. Assuming the <span class="arithmatex">\(k^{\text{th}}\)</span> case is true, let's consider the <span class="arithmatex">\((k + 1)^{\text{th}}\)</span> case. </p>
+<p>By definition we have <span class="arithmatex">\(a_1 + a_2 + \dots + a_k + a_{k + 1} = 1\)</span>. Defining <span class="arithmatex">\(b := a_1 + a_2 + ... + a_k\)</span>, we have <span class="arithmatex">\(b + a_{k+1} = 1\)</span>.</p>
+<p>We now look at the right hand side:</p>
+<div class="arithmatex">\[
+a_1f(x_1) + a_2f(x_2) + \dots + a_kfx_k) + a_{k+1}f(x_{k+1})) = a_{k+1}f(x_{k+1})) + b\sum_i^{k}\frac{a_i}{b}f(x_i)
+\]</div>
+<p>The last term <span class="arithmatex">\(\sum_i^{k}\frac{a_i}{b}f(x_i)\)</span>, if we cast <span class="arithmatex">\(\frac{a_i}{b} = a'_i\)</span>, you get <span class="arithmatex">\(\sum_i^k \frac{a_i}{b} = 1\)</span>. So basically, the extreme right term can be bounded by the <span class="arithmatex">\(n=k\)</span> case which we are assuming to be true as part of our induction proof. </p>
+<p>So now, you have </p>
+<div class="arithmatex">\[
+\begin{aligned}
+&amp;a_1f(x_1) + a_2f(x_2) + \dots + a_kfx_k + a_{k+1}f(x_{k+1}) \\
+&amp;= a_{k+1}f(x_{k+1}) + b\sum_i^{k}\frac{a_i}{b}f(x_i) \\
+&amp;\geq a_{k+1}f(x_{k+1}) + bf(\sum_i^ka'_ix_i) \leftarrow \text{And this is basically the 2 point case} \\
+&amp;\geq f(a_{k+1}x_{k+1} + b\sum_i^{k}a'_ix_i) \\
+&amp;= f(\sum_i^{k+1}a_ix_i) \\
+\end{aligned}
+\]</div>
+<p>Thus proving the <span class="arithmatex">\(k+1\)</span> case, and therefore the statement. Look at the <a href="https://www.amazon.co.uk/Elements-Information-Theory-Telecommunications-Processing/dp/0471241954">Elements of Information Theory</a> if you don't trust what I've written here.</p>
+<h4 id="putting-it-all-together">Putting it all together<a class="headerlink" href="#putting-it-all-together" title="Permanent link">&para;</a></h4>
+<p>You notice that the definition of probability basically matches that of <span class="arithmatex">\(a_i\)</span> in the previous part. Substituting <span class="arithmatex">\(a\)</span> for <span class="arithmatex">\(p\)</span>, you get </p>
+<div class="arithmatex">\[
+f(p_1x_1 + p_2x_2 + \dots p_nx_n) = f(\mathbb{E[x]}) \leq p_1f(x_1) + p_2f(x_2) + \dots + p_nf(x_n)
+\]</div>
+<div class="arithmatex">\[
+p_1f(x_1) + p_2f(x_2) + \dots + p_nf(x_n) = \mathbb{E}[f(x)]
+\]</div>
+<p>and that's where you get Jensen's inequality from </p>
+<div class="arithmatex">\[
+f(p_1x_1 + p_2x_2 + \dots p_nx_n) \leq p_1f(x_1) + p_2f(x_2) + \dots + p_nf(x_n) \implies f(\mathbb{E[x]}) \leq \mathbb{E}[f(x)]
+\]</div>
+<p>This will hold for the continuous case as well.</p>
+<p>For <em>concave</em> functions <span class="arithmatex">\(f\)</span>, it is the opposite:</p>
+<p>$$
+f(\mathbb{E[x]}) \geq \mathbb{E}[f(x)]
+$$
+In particular, let's remember that logarithmic functions are concave, so </p>
+<div class="arithmatex">\[
+\text{log}(\mathbb{E}[x]) \geq \mathbb{E}[\text{log(x)}]
+\]</div>
+<h3 id="mutual-information-entropy-et-al">Mutual information, entropy et al<a class="headerlink" href="#mutual-information-entropy-et-al" title="Permanent link">&para;</a></h3>
+<p>To understand the equations, we need some more background on mutual information, entropy etc. </p>
+<p>Again, refer back to the <a href="https://www.amazon.co.uk/Elements-Information-Theory-Telecommunications-Processing/dp/0471241954">Elements of Information Theory</a> book for a more thorough treatment. </p>
+<h4 id="definitions-and-some-results">Definitions and some results<a class="headerlink" href="#definitions-and-some-results" title="Permanent link">&para;</a></h4>
+<p>The entropy H(X) of a random variable X is defined by </p>
+<p>$$
+H(X) = -\sum_{x\in \mathcal{X}}p(x)\log p(x)
+$$
+which is also sometimes written as <span class="arithmatex">\(H(p)\)</span> because we're all friends here. </p>
+<p>We can also extend this definition to a pair of random variables. There's nothing really "new" because you can consider <span class="arithmatex">\((X, Y)\)</span> to be a single vector-valued random function, but it's still useful to write it all out:</p>
+<blockquote>
+<p>Definition: The joint entropy <span class="arithmatex">\(H(X, Y)\)</span> of a pair of discrete random. variables (X, Y) with a joint distribution <span class="arithmatex">\(p(x,y)\)</span> is</p>
+<div class="arithmatex">\[
+ H(X, Y) = - \sum_{x \in \mathcal{X}}\sum_{y \in \mathcal{Y}}p(x, y) \log p(x, y)
+\]</div>
+</blockquote>
+<p>Another thing to remember is the definition of conditional entropy</p>
+<blockquote>
+<p>Definition: If $(X, Y) \sim p(x, y), then the conditional entropy <span class="arithmatex">\(H(Y|X)\)</span> is defined as</p>
+<div class="arithmatex">\[
+ H(Y | X) = \sum_{x \in \mathcal{X}} p(x)H(Y|X=x)
+\]</div>
+<div class="arithmatex">\[
+ = - \sum_{x \in \mathcal{X}}p(x) \sum_{y\in \mathcal{Y}}p(y|x)\log p(y|x)
+ \]</div>
+<div class="arithmatex">\[
+= - \sum_{x \in \mathcal{X}}\sum_{y\in \mathcal{Y}}p(x, y)\log p(y|x)
+ \]</div>
+<div class="arithmatex">\[
+= \mathbb{E} \log p(Y|X)
+\]</div>
+</blockquote>
+<p>One last thing to also remember is the chain rule of entropy, which is as follows: </p>
+<div class="arithmatex">\[
+H(X, Y) = H(X) + H(Y|X) = H(Y) + H(X|Y)
+\]</div>
+<p>Proof:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+H(X,Y) &amp;= -\sum\sum p(x,y)\log p(x,y) \\
+&amp;= -\sum\sum p(x,y)\log p(x)p(y|x) \\
+&amp;= -\sum\sum p(x,y)\log p(x) - \sum\sum p(x,y)\log p(y|x) \\
+&amp;= -\sum p(x)\log p(x) - \sum\sum p(x,y)\log p(y|x) \\
+&amp;= H(X) + H(Y|X)
+\end{aligned}
+\]</div>
+<p>The corollary of this is </p>
+<p>$$
+H(X, Y | Z) = H(X | Z) + H(Y | X, Z)
+$$
+Ok, so that is a big chunk. </p>
+<p>Let's move along a bit quicker now. The Kullback-Leibler distance between 2 distributions <span class="arithmatex">\(p(x), q(x)\)</span> is given by: </p>
+<p>$$
+\begin{aligned}
+D(p||q) &amp;= \sum_{x\in\mathcal{X}} p(x)\log\frac{p(x)}{q(x)} \
+&amp;= E_p\log\frac{p(X)}{q(X)}
+\end{aligned}
+$$
+With this definition, we can move on to what mutual information is. </p>
+<blockquote>
+<p>The mutual information between 2 random variables <span class="arithmatex">\(X, Y\)</span> with a join probability mass function <span class="arithmatex">\(p(x, y)\)</span> and marginals <span class="arithmatex">\(p(x), p(y)\)</span> is the KL distance between the joint distribution and the product distribution <span class="arithmatex">\(p(x)p(y)\)</span></p>
+</blockquote>
+<p>In equations, this means: </p>
+<div class="arithmatex">\[
+\begin{aligned}
+I(X;Y) = D(p(x, y) || p(x)p(y)) &amp;= \sum_{x\in\mathcal{X}}\sum_{y\in\mathcal{Y}} p(x,y)\log\frac{p(x,y)}{p(x)p(y)} \\
+&amp;= D(p(x,y)||p(x)p(y)) \\
+&amp;= E_{p(x,y)}\log\frac{p(X,Y)}{p(X)p(Y)}
+\end{aligned}
+\]</div>
+<p>And if you keep turning the crank, this basically becomes </p>
+<p>$$
+I(X; Y) = H(X) - H(X|Y) = H(Y) - H(Y|X) = H(X) + H(Y) - H(X, Y)
+$$
+There is another definition we need to talk about - the conditional mutual information of random variables <span class="arithmatex">\(X, Y\)</span> given a third variable <span class="arithmatex">\(Z\)</span>, and this is defined by: </p>
+<div class="arithmatex">\[
+\begin{aligned}
+I(X;Y|Z) &amp;= H(X|Z) - H(X|Y,Z) \\
+&amp;= E_{p(x,y,z)}\log\frac{p(X,Y|Z)}{p(X|Z)p(Y|Z)}
+\end{aligned}
+\]</div>
+<h4 id="chain-rules">Chain rules<a class="headerlink" href="#chain-rules" title="Permanent link">&para;</a></h4>
+<p>We're nearly there! Let's go through some chain rules now. </p>
+<p>Chain rules for entropy is basically the following:
+Let <span class="arithmatex">\(X_1, X_2, \dots X_n\)</span> be drawn according to <span class="arithmatex">\(p(x_1, x_2, \dots x_n)\)</span>. Then you'll have</p>
+<p>$$
+H(X_1, X_2, \ldots, X_n) = \sum_{i=1}^n H(X_i|X_{i-1}, \ldots, X_1).
+$$
+The proof of this is if you write </p>
+<div class="arithmatex">\[
+\begin{aligned}
+p(x_1,\ldots,x_n) &amp;= \prod_{i=1}^n p(x_i|x_{i-1},\ldots,x_1) \\
+\implies &amp; H(X_1, X_2,\ldots, X_n) \\
+&amp;= -\sum_{x_1,x_2,\ldots,x_n} p(x_1,x_2,\ldots,x_n)\log p(x_1,x_2,\ldots,x_n) \\
+&amp;= -\sum_{x_1,x_2,\ldots,x_n} p(x_1,x_2,\ldots,x_n)\log\prod_{i=1}^n p(x_i|x_{i-1},\ldots,x_1) \\
+&amp;= -\sum_{x_1,x_2,\ldots,x_n}\sum_{i=1}^n p(x_1,x_2,\ldots,x_n)\log p(x_i|x_{i-1},\ldots,x_1) \\
+&amp;= -\sum_{i=1}^n\sum_{x_1,x_2,\ldots,x_n} p(x_1,x_2,\ldots,x_n)\log p(x_i|x_{i-1},\ldots,x_1) \\
+&amp;= -\sum_{i=1}^n\sum_{x_1,x_2,\ldots,x_i} p(x_1,x_2,\ldots,x_i)\log p(x_i|x_{i-1},\ldots,x_1) \\
+&amp;= \sum_{i=1}^n H(X_i|X_{i-1},\ldots,X_1). \quad \square
+\end{aligned}
+\]</div>
+<p>Similarly, for mutual information you have</p>
+<p>$$
+I(X_1,X_2,\ldots,X_n;Y) = \sum_{i=1}^n I(X_i;Y|X_{i-1},X_{i-2},\ldots,X_1).
+$$
+You can prove this using the same cranks, or just refer to the book™. </p>
+<h2 id="back-to-the-equation">Back to the equation<a class="headerlink" href="#back-to-the-equation" title="Permanent link">&para;</a></h2>
+<p>Ok, that was a lot of equations, but there's going to be more!</p>
+<p>Let us remember what we're trying to do again. We want to show this: </p>
+<div class="arithmatex">\[
+\begin{aligned}
+&amp;I(\hat{y}^*;\mathcal{D}|z^*,\theta) \\
+&amp;\geq I(x^*;\hat{y}^*|\theta,z^*) \\
+&amp;= I(x^*;\hat{y}^*|\theta) - I(x^*;z^*|\theta) + I(x^*;z^*|\hat{y}^*,\theta) \\
+&amp;\geq I(x^*;\hat{y}^*|\theta) - I(x^*;z^*|\theta) \\
+&amp;= I(x^*;\hat{y}^*|\theta) - \mathbb{E}_{p(x^*)q(z^*|x^*,\theta)}\left[\log\frac{q(z^*|x^*,\theta)}{q(z^*|\theta)}\right] \\
+&amp;\geq I(x^*;\hat{y}^*|\theta) - \mathbb{E}\left[\log\frac{q(z^*|x^*,\theta)}{r(z^*)}\right] = I(x^*;\hat{y}^*|\theta) - \mathbb{E}[D_{KL}(q(z^*|x^*,\theta)||r(z^*))]
+\end{aligned}
+\]</div>
+<p>for the following plate diagram:</p>
+<p><img alt="Pasted image 20250207142509.png" src="../../../../images/Pasted%20image%2020250207142509.png" /></p>
+<p>The first non-obvious part is showing the first jump itself: </p>
+<div class="arithmatex">\[
+I(\hat{y}^*;\mathcal{D}|z^*,\theta) \geq I(x^*;\hat{y}^*|\theta,z^*)
+\]</div>
+<p>How does this come about?</p>
+<p>We first have to remember the following: </p>
+<div class="arithmatex">\[
+\begin{aligned}
+I(\y;\D|\z,\theta) &amp;= H(\y |\theta, \z) - H(y|\D, \theta, \z) \\
+I(\y;\x|\D,\theta, \z) &amp;= H(\y | \D, \theta, \z) - H(y| \x, \D, \theta, \z) \\
+I(\y;\x, \D |\theta, \z) &amp;= H(\y |\theta, \z) - H(y| \x, \D, \theta, \z) \\
+\implies I(\y;\x, \D |\theta, \z) &amp;= I(\y;\x|\D,\theta, \z) + I(\y;\D|\z,\theta)
+\end{aligned}
+\]</div>
+<p>But if you look at the plate diagram, you have </p>
+<div class="arithmatex">\[
+I(\y;\x|\D,\theta, \z) = 0
+\]</div>
+<p>this means that we can now write</p>
+<div class="arithmatex">\[
+\begin{aligned}
+I(\hat{y}^*;\mathcal{D}|z^*,\theta) &amp;= I(\hat{y}^*;\mathcal{D}|z^*,\theta) + I(\hat{y}^*;x^*|\mathcal{D},\theta,z^*) \\
+&amp;= I(\hat{y}^*;x^*,\mathcal{D}|\theta,z^*) \leftarrow \text{Now what?}\\
+\end{aligned}
+\]</div>
+<p>To further carry on, we need to prove some intermediate results. The first is that <span class="arithmatex">\(I(X; Y|Z) = I(Y; X|Z)\)</span>. This is because: </p>
+<div class="arithmatex">\[
+\begin{align}
+I(X; Y|Z) &amp;= H(X|Z) - H(X|Y,Z) \\
+&amp;= H(X,Z) - H(Z) - (H(X, Y, Z) - H(Y, Z)) \\
+&amp;= H(Y,Z) - H(Z) - ((H(X, Y, Z) - H(X, Z))) \\
+&amp;= H(Y|Z) - H(Y|X, Z) \\
+&amp;= I(Y; X|Z)
+\end{align}
+\]</div>
+<p>The next one to show is the following:</p>
+<div class="arithmatex">\[
+I(X; Y,Z|W) = I(X; Y|W) + I(X; Z|Y, W)
+\]</div>
+<p>Why does this work?
+Expanding out the right hand side:</p>
+<div class="arithmatex">\[
+\begin{align}
+I(X; Y,Z |W) &amp;= H(X|W) - H(X|Y,Z,W) \\
+&amp;= H(X|W) - H(X|Y, W) + H(X|Y, W) - H(X|Y,Z,W) \\
+&amp;= I(X; Y|W) + I(X; Z|Y, W)
+\end{align}
+\]</div>
+<p>which is the left hand side. </p>
+<p>Let's go back to where we left off - </p>
+<div class="arithmatex">\[
+\begin{aligned}
+&amp;I(\hat{y}^*;x^*,\mathcal{D}|\theta,z^*) \leftarrow \text{Use second result to expand}\\
+&amp;= I(\y;\x|\theta, \z) + I(\y; \D|\x, \theta, \z) \leftarrow \text{Use first result to swap around variables in first term}\\
+&amp;= I(x^*;\hat{y}^*|\theta,z^*) + I(\hat{y}^*;\mathcal{D}|x^*,\theta,z^*)
+\end{aligned}
+\]</div>
+<p>Giving a final:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+I(\hat{y}^*;\mathcal{D}|z^*,\theta) &amp;= I(\hat{y}^*;\mathcal{D}|z^*,\theta) + I(\hat{y}^*;x^*|\mathcal{D},\theta,z^*) \\
+&amp;= I(\hat{y}^*;x^*,\mathcal{D}|\theta,z^*) \\
+&amp;= I(x^*;\hat{y}^*|\theta,z^*) + I(\hat{y}^*;\mathcal{D}|x^*,\theta,z^*) \\
+&amp;\geq I(x^*;\hat{y}^*|\theta,z^*)
+\end{aligned}
+\]</div>
+<p>and thus, now we can understand Equation 2 from the paper in its entirety: </p>
+<p>$$
+\begin{aligned}
+&amp;I(\hat{y}<sup>*;\mathcal{D}|z</sup><em>,\theta) \
+&amp;\geq I(x<sup>*;\hat{y}</sup></em>|\theta,z^<em>) \
+&amp;= I(x<sup>*;\hat{y}</sup></em>|\theta) - I(x<sup>*;z</sup><em>|\theta) + I(x<sup>*;z</sup></em>|\hat{y}^<em>,\theta) \
+&amp;\geq I(x<sup>*;\hat{y}</sup></em>|\theta) - I(x<sup>*;z</sup><em>|\theta) \
+&amp;= I(x<sup>*;\hat{y}</sup></em>|\theta) - \mathbb{E}_{p(x<sup>*)q(z</sup><em>|x<sup>*,\theta)}\left[\log\frac{q(z</sup></em>|x<sup>*,\theta)}{q(z</sup><em>|\theta)}\right] \
+&amp;\geq I(x<sup>*;\hat{y}</sup></em>|\theta) - \mathbb{E}\left[\log\frac{q(z<sup>*|x</sup><em>,\theta)}{r(z^</em>)}\right] = I(x<sup>*;\hat{y}</sup><em>|\theta) - \mathbb{E}[D_{KL}(q(z<sup>*|x</sup></em>,\theta)||r(z^*))]
+\end{aligned}
+$$
+where <span class="arithmatex">\(r(\z)\)</span> is a variational approximation of the marginal <span class="arithmatex">\(q(\z|\theta)\)</span> </p>
+<p>What does this all mean?</p>
+<p>The whole aim of meta-regularisers It means that if you want to force the model to learn from the training dataset for each <span class="arithmatex">\(\T_i\)</span>, one "tractable" way you can do it is by increasing the mutual information between <span class="arithmatex">\(\x\)</span> and <span class="arithmatex">\(\y\)</span> while at the same time restricting the information flow from <span class="arithmatex">\(\x\)</span> to <span class="arithmatex">\(\y\)</span> through a stochastic variable <span class="arithmatex">\(z\)</span>.</p>
+<p>Equation 2 from the paper is just one of many equations presented by the authors of the paper, but now, equipped with the various relationships between entropy, mutual information etc., you too can understand the authors' motivation of setting up the optimization functions and training losses they way they have set it up!</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.sections"], "search": "../../../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+        <script src="../../../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
