@@ -1,3 +1,8 @@
+# Using UV:
+1. If you don't have `uv venv` set up, run the following command first: `uv venv --python-preference only-managed`
+2. Then source it with `source .venv/bin/activate`
+3. And then run `uv sync`, and everything will work.
+
 # Publish your Obsidian Notes
 
 (MkDocs template)

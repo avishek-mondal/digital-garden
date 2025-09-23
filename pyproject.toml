@@ -1,0 +1,21 @@
+[project]
+name = "digital-garden"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=6.29.5",
+    "ipython>=9.0.2",
+    "matplotlib>=3.10.1",
+    "mkdocs-material>=9.6.20",
+    "mkdocs-redirects>=1.2.2",
+    "mkdocs-roamlinks-plugin>=0.3.2",
+    "mkdocs-rss-plugin>=1.17.3",
+    "numpy>=2.2.4",
+    "polars>=1.26.0",
+    "scikit-learn>=1.6.1",
+    "seaborn>=0.13.2",
+    "torch>=2.6.0",
+    "tqdm>=4.67.1",
+]
