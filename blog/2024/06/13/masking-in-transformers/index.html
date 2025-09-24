@@ -1,0 +1,977 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://avishek-mondal.github.io/digital-garden/blog/2024/06/13/masking-in-transformers/">
+      
+      
+        <link rel="prev" href="../../../01/05/self-attention/">
+      
+      
+        <link rel="next" href="../../../07/02/rope-embeddings/">
+      
+      
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../../../../feed_rss_created.xml">
+        <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../../../../feed_rss_updated.xml">
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>Masking in transformers - mondalogue</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.e53b48f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../css/custom.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  
+  <script defer src="https://cloud.umami.is/script.js"
+          data-website-id="48c9f533-7598-4773-97e7-382966820748"></script>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#masking-the-basics" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="mondalogue" class="md-header__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            mondalogue
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Masking in transformers
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="mondalogue" class="md-nav__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    mondalogue
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Blog
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Blog
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hello!
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Archive
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2024/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2024
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Categories
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Categories
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    algorithms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+                        <time datetime="2024-06-13 00:00:00+00:00" class="md-ellipsis">June 13, 2024</time>
+                      </div>
+                    </li>
+                    
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              9 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+<p>Masking is pretty fundamental to how transformers work. The main purpose of masking is to make sure the model doesn't "attend to" some tokens. Feel free to read  my previous blog post about <a href="../../../01/05/self-attention/">Self attention</a>.</p>
+<!-- more -->
+
+<p>What are the kind of tokens we may not want a model to "attend to"? They're usually:</p>
+<ol>
+<li>Padding tokens - These tokens are added in some architectures (such as BERT) such that all input token sequences are of the same length, and you do not want them to affect your final output.  </li>
+<li>Future tokens - when training some decoder architectures, you want the "weighting" by the attention mechanism placed on the <em>value</em> vectors corresponding to tokens further along in the sequence in the training data to be zero. Because if it is <em>non-zero</em> your model is basically "cheating" during training by looking at what it is supposed to predict, and will not perform as well during inference time.</li>
+</ol>
+<p>With this in mind, let's see how masking tends to be implemented in practice. </p>
+<h1 id="masking-the-basics">Masking - the basics<a class="headerlink" href="#masking-the-basics" title="Permanent link">&para;</a></h1>
+<p>The main way to make sure the tokens you want to mask are not being attended to is by manipulating the inputs to the softmax function. As a reminder, the softmax function is defined as the following - given an array of inputs <span class="arithmatex">\([x_0, x_1, ... x_i, ..., x_N]\)</span> the softmax function returns an array of <span class="arithmatex">\([p_0, p_1, ... p_i, ... p_N]\)</span> where </p>
+<div class="arithmatex">\[
+p_i = \frac{e^{x_i}}{\sum^{N}_{i=1}{e^{x_i}}}
+\]</div>
+<p>and <span class="arithmatex">\(\sum_ip_i = 1\)</span>. </p>
+<p>This softmax function gets applied on the output of the <span class="arithmatex">\(k^Tq\)</span> operation in the attention. The main "trick" when it comes to masking in a vectorized way is basically then overwriting this value with a large <em>negative</em> value. </p>
+<p>To see this in action, let us see how you'd make sure future tokens aren't being attended to in pure Python for loops. </p>
+<p>First, let's set up the toy example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">softmax</span><span class="p">(</span><span class="n">items_in</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+  <span class="n">e_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">items_in</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">items_in</span><span class="p">))</span>
+  <span class="k">return</span> <span class="n">e_x</span> <span class="o">/</span> <span class="n">e_x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+
+<span class="c1"># Set seed so we get the same random numbers</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="c1"># Number of inputs</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="c1"># Number of dimensions of each input</span>
+<span class="n">D</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="n">all_x</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># Create elements x_n and append to list</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+  <span class="n">all_x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">)))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;all_x: &quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">all_x</span><span class="p">)</span>
+<span class="n">A_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="n">D</span><span class="p">))</span>
+<span class="n">A_k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="n">D</span><span class="p">))</span>
+<span class="n">A_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="n">D</span><span class="p">))</span>
+
+<span class="c1"># all the biases are of dimension Dx1</span>
+<span class="n">b_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">b_k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">b_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">all_queries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">all_keys</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">all_values</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># For every input</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_x</span><span class="p">:</span>
+  <span class="n">query</span> <span class="o">=</span> <span class="n">A_q</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b_q</span>
+  <span class="n">key</span> <span class="o">=</span> <span class="n">A_k</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b_k</span> 
+  <span class="n">value</span> <span class="o">=</span> <span class="n">A_v</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b_v</span>
+
+  <span class="n">all_queries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+  <span class="n">all_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+  <span class="n">all_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+<p>In this above example, the columns of <code>all_x</code> are the <code>D</code> dimensioned data points, and there are <code>N=3</code> of them. This can be thought of as the output of the embedding layer in a standard transformer block.</p>
+<p>Assume this is a causal mask we are trying to apply, i.e. for the <code>i_th</code> input, there should only be non-zero attention weights for <em>values</em> with an index <code>&lt;=i</code>.
+If that was confusing, let's illustrate this in code:</p>
+<div class="highlight"><pre><span></span><code><span class="n">all_outs</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;i: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">all_kj_qi</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">q_i</span> <span class="o">=</span> <span class="n">all_queries</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># &lt;- no future tokens will be attended to. If you want to attent to all tokens, this line would change to range(N) instead of range(i + 1) </span>
+        <span class="n">key_j</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">dot_product</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">key_j</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">q_i</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">all_kj_qi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dot_product</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;before softmax:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">all_kj_qi</span><span class="p">)</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">all_kj_qi</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;attentions: </span><span class="si">{</span><span class="n">attention</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">out_i</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">attention</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">all_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">attention</span><span class="p">)))</span>
+    <span class="n">all_outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_i</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<p>The output would be: 
+<div class="highlight"><pre><span></span><code>====================
+i: 0
+before softmax:
+[array(8.0985502)]
+attentions: [1.]
+====================
+====================
+i: 1
+before softmax:
+[array(1.33534917), array(1.04085729)]
+attentions: [0.57309546 0.42690454]
+====================
+====================
+i: 2
+before softmax:
+[array(2.95774823), array(0.4307023), array(2.98146278)]
+attentions: [0.47530942 0.0379747  0.48671588]
+====================
+====================
+i: 3
+before softmax:
+[array(7.39220366), array(0.99822195), array(6.05577164), array(5.18771535)]
+attentions: [0.72739962 0.00121591 0.19114723 0.08023724]
+====================
+</code></pre></div></p>
+<p>This basically means the following - </p>
+<div class="arithmatex">\[
+out_0 = 1.0 \times v_0
+\]</div>
+<div class="arithmatex">\[
+out_1 = 0.573 \times v_0 + 0.427 \times v_1
+\]</div>
+<div class="arithmatex">\[
+out_2 = 0.475 \times v_0 + 0.038 \times v_1 + 0.487 \times v_2
+\]</div>
+<p>and so forth. As you can see, <span class="arithmatex">\(out_i\)</span> only depends on <span class="arithmatex">\(v_j\)</span> if <span class="arithmatex">\(j&lt;=i\)</span>. </p>
+<p>So far, so good, but these pure Python <code>for</code> loops are slow, and you want to do this in a vectorized way. How would you do that?</p>
+<p>As mentioned previously, you do this by "forcing" the pre-softmax co-efficients to be large negative values at the positions you want to mask, so that the post-softmax coefficients at these positions are 0. This is best illustrated in this snippet of code: </p>
+<div class="highlight"><pre><span></span><code><span class="n">all_outs</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;i: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">all_kj_qi</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># &lt;-- will be a 1 x N vector</span>
+    <span class="n">q_i</span> <span class="o">=</span> <span class="n">all_queries</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">key_j</span> <span class="o">=</span> <span class="n">all_keys</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">dot_product</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">key_j</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">q_i</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">all_kj_qi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dot_product</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;before adding:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">all_kj_qi</span><span class="p">)</span>
+    <span class="n">to_add</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">all_kj_qi</span> <span class="o">+=</span> <span class="n">to_add</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;after adding:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">all_kj_qi</span><span class="p">)</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">all_kj_qi</span><span class="p">)</span> <span class="c1"># &lt;-- 1 x N vector that sums to 1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;attentions: </span><span class="si">{</span><span class="n">attention</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">out_i</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">attention</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">all_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
+    <span class="n">all_outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_i</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<p>resulting in the output: </p>
+<div class="highlight"><pre><span></span><code>====================
+i: 0
+before adding:
+[array(8.0985502), array(-1.41964676), array(0.40887655), array(-4.51894638)]
+after adding:
+[8.0985502      -inf      -inf      -inf]
+attentions: [1. 0. 0. 0.]
+====================
+====================
+i: 1
+before adding:
+[array(1.33534917), array(1.04085729), array(3.15550058), array(4.36428589)]
+after adding:
+[1.33534917 1.04085729       -inf       -inf]
+attentions: [0.57309546 0.42690454 0.         0.        ]
+====================
+====================
+i: 2
+before adding:
+[array(2.95774823), array(0.4307023), array(2.98146278), array(2.65666126)]
+after adding:
+[2.95774823 0.4307023  2.98146278       -inf]
+attentions: [0.47530942 0.0379747  0.48671588 0.        ]
+====================
+====================
+i: 3
+before adding:
+[array(7.39220366), array(0.99822195), array(6.05577164), array(5.18771535)]
+after adding:
+[7.39220366 0.99822195 6.05577164 5.18771535]
+attentions: [0.72739962 0.00121591 0.19114723 0.08023724]
+====================
+</code></pre></div>
+<p>You can see that the attention values are the same as the previous attention values! This second snippet is <em>much</em> simpler to write in a vectorized manner. First let's set everything up as matrices instead of vectors:</p>
+<div class="highlight"><pre><span></span><code><span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_x</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+<span class="n">Q</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">A_q</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">b_q</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># &lt;- N x D matrix</span>
+<span class="n">K</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">A_k</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">b_k</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># &lt;- N x D matrix</span>
+<span class="n">V</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">A_v</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">b_v</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># &lt;- N x D matrix</span>
+
+<span class="c1"># show that our set up above using pure python for loops, and this matrix set up are equivalent</span>
+<span class="k">assert</span> <span class="p">(</span><span class="n">Q</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_queries</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">softmax_cols</span><span class="p">(</span><span class="n">data_in</span><span class="p">):</span>
+    <span class="c1"># Exponentiate all of the values</span>
+    <span class="c1"># keepdims=True IS VERY IMPORTANT</span>
+    <span class="n">_data_in</span> <span class="o">=</span> <span class="n">data_in</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data_in</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">exp_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">_data_in</span><span class="p">)</span>
+    <span class="c1"># Sum over columns</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">exp_values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Compute softmax</span>
+    <span class="n">softmax</span> <span class="o">=</span> <span class="n">exp_values</span> <span class="o">/</span> <span class="n">denom</span>
+    <span class="c1"># return the answer</span>
+    <span class="k">return</span> <span class="n">softmax</span>
+</code></pre></div>
+<p>Now, to look at what the pre-softmax values are, you can inspect what <code>Q @ K.T</code> is: </p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;</span> <span class="n">Q</span><span class="nd">@K</span><span class="o">.</span><span class="n">T</span>
+<span class="n">array</span><span class="p">([[</span> <span class="mf">8.0985502</span> <span class="p">,</span> <span class="o">-</span><span class="mf">1.41964676</span><span class="p">,</span>  <span class="mf">0.40887655</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.51894638</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">1.33534917</span><span class="p">,</span>  <span class="mf">1.04085729</span><span class="p">,</span>  <span class="mf">3.15550058</span><span class="p">,</span>  <span class="mf">4.36428589</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">2.95774823</span><span class="p">,</span>  <span class="mf">0.4307023</span> <span class="p">,</span>  <span class="mf">2.98146278</span><span class="p">,</span>  <span class="mf">2.65666126</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">7.39220366</span><span class="p">,</span>  <span class="mf">0.99822195</span><span class="p">,</span>  <span class="mf">6.05577164</span><span class="p">,</span>  <span class="mf">5.18771535</span><span class="p">]])</span>
+</code></pre></div>
+<p>note that each row is basically the array that was printed out as part of the <code>before adding:</code> part in the previous output snippet! For illustration:</p>
+<p><img alt="Pasted image 20240708164209.png" src="../../../../images/Pasted%20image%2020240708164209.png" /></p>
+<p>And now you need the attention mask: </p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;</span> <span class="n">to_add</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">)),</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;</span> <span class="n">to_add</span>
+
+<span class="n">array</span><span class="p">([[</span>  <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">inf</span><span class="p">],</span>
+       <span class="p">[</span>  <span class="mf">0.</span><span class="p">,</span>   <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">inf</span><span class="p">],</span>
+       <span class="p">[</span>  <span class="mf">0.</span><span class="p">,</span>   <span class="mf">0.</span><span class="p">,</span>   <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="n">inf</span><span class="p">],</span>
+       <span class="p">[</span>  <span class="mf">0.</span><span class="p">,</span>   <span class="mf">0.</span><span class="p">,</span>   <span class="mf">0.</span><span class="p">,</span>   <span class="mf">0.</span><span class="p">]])</span>
+</code></pre></div>
+<p>Then you'd add this mask to the <span class="arithmatex">\(QK^T\)</span> value. 
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;</span><span class="n">pre_softmax</span> <span class="o">=</span> <span class="n">Q</span><span class="nd">@K</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">to_add</span>
+<span class="o">&gt;&gt;</span><span class="n">pre_softmax</span>
+<span class="n">array</span><span class="p">([[</span><span class="mf">8.0985502</span> <span class="p">,</span>       <span class="o">-</span><span class="n">inf</span><span class="p">,</span>       <span class="o">-</span><span class="n">inf</span><span class="p">,</span>       <span class="o">-</span><span class="n">inf</span><span class="p">],</span>
+       <span class="p">[</span><span class="mf">1.33534917</span><span class="p">,</span> <span class="mf">1.04085729</span><span class="p">,</span>       <span class="o">-</span><span class="n">inf</span><span class="p">,</span>       <span class="o">-</span><span class="n">inf</span><span class="p">],</span>
+       <span class="p">[</span><span class="mf">2.95774823</span><span class="p">,</span> <span class="mf">0.4307023</span> <span class="p">,</span> <span class="mf">2.98146278</span><span class="p">,</span>       <span class="o">-</span><span class="n">inf</span><span class="p">],</span>
+       <span class="p">[</span><span class="mf">7.39220366</span><span class="p">,</span> <span class="mf">0.99822195</span><span class="p">,</span> <span class="mf">6.05577164</span><span class="p">,</span> <span class="mf">5.18771535</span><span class="p">]])</span>
+</code></pre></div></p>
+<p>Once done, just put it all through the softmax function!
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;</span><span class="n">softmax_cols</span><span class="p">(</span><span class="n">pre_softmax</span><span class="p">)</span>
+<span class="n">array</span><span class="p">([[</span><span class="mf">1.</span>        <span class="p">,</span> <span class="mf">0.</span>        <span class="p">,</span> <span class="mf">0.</span>        <span class="p">,</span> <span class="mf">0.</span>        <span class="p">],</span>
+       <span class="p">[</span><span class="mf">0.57309546</span><span class="p">,</span> <span class="mf">0.42690454</span><span class="p">,</span> <span class="mf">0.</span>        <span class="p">,</span> <span class="mf">0.</span>        <span class="p">],</span>
+       <span class="p">[</span><span class="mf">0.47530942</span><span class="p">,</span> <span class="mf">0.0379747</span> <span class="p">,</span> <span class="mf">0.48671588</span><span class="p">,</span> <span class="mf">0.</span>        <span class="p">],</span>
+       <span class="p">[</span><span class="mf">0.72739962</span><span class="p">,</span> <span class="mf">0.00121591</span><span class="p">,</span> <span class="mf">0.19114723</span><span class="p">,</span> <span class="mf">0.08023724</span><span class="p">]])</span>
+</code></pre></div></p>
+<p>This is your attention matrix! It is the same output we get as when we used the pure Python loops.</p>
+<p>As a recap, in a vectorized way, all you need is just the following lines of code:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Q</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">A_q</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">b_q</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># &lt;- N x D matrix</span>
+<span class="n">K</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">A_k</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">b_k</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># &lt;- N x D matrix</span>
+<span class="n">V</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">A_v</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">b_v</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># &lt;- N x D matrix</span>
+
+<span class="n">to_add</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">)),</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">pre_softmax</span> <span class="o">=</span> <span class="n">Q</span><span class="nd">@K</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">to_add</span>
+<span class="n">attention</span> <span class="o">=</span> <span class="n">softmax_cols</span><span class="p">(</span><span class="n">pre_softmax</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">attention</span> <span class="o">@</span> <span class="n">V</span>
+
+<span class="k">assert</span> <span class="p">(</span><span class="n">out</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_outs</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>  <span class="c1"># &lt;- shows equivalence</span>
+</code></pre></div>
+<h1 id="masking-in-the-hf-library">Masking in the HF library<a class="headerlink" href="#masking-in-the-hf-library" title="Permanent link">&para;</a></h1>
+<p>Now that you know the basics of how masking is supposed to work, let's take a look at how the Huggingface library implements this, specifically in the BERT modules. </p>
+<p>Let's set up this toy example: </p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BertTokenizerFast</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">BertTokenizerFast</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;google-bert/bert-base-uncased&quot;</span><span class="p">)</span>
+
+<span class="n">words</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s2">&quot;word1*word2|word3&quot;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s2">&quot;word1*&quot;</span><span class="p">,</span> <span class="s2">&quot;word2|&quot;</span><span class="p">,</span> <span class="s2">&quot;word3&quot;</span><span class="p">],</span>
+<span class="p">]</span>
+<span class="n">tokenizer_out</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="p">(</span>
+    <span class="n">text</span><span class="o">=</span><span class="n">words</span><span class="p">,</span>
+    <span class="n">is_split_into_words</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_offsets_mapping</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_overflowing_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">truncation</span><span class="o">=</span><span class="s2">&quot;longest_first&quot;</span><span class="p">,</span>
+    <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;max_length&quot;</span><span class="p">,</span>
+    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+    <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+    <span class="n">stride</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">return_length</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Input IDs and attention mask</span>
+<span class="n">input_ids</span> <span class="o">=</span> <span class="n">tokenizer_out</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span>
+<span class="n">attention_mask</span> <span class="o">=</span> <span class="n">tokenizer_out</span><span class="p">[</span><span class="s2">&quot;attention_mask&quot;</span><span class="p">]</span>
+</code></pre></div>
+<p>If you look at what input_ids and the attention_mask are: 
+<div class="highlight"><pre><span></span><code><span class="n">input_ids</span>
+<span class="n">tensor</span><span class="p">([[</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">2773</span><span class="p">,</span> <span class="mi">2487</span><span class="p">,</span> <span class="mi">1008</span><span class="p">,</span> <span class="mi">2773</span><span class="p">,</span> <span class="mi">2475</span><span class="p">,</span> <span class="mi">1064</span><span class="p">,</span> <span class="mi">2773</span><span class="p">,</span> <span class="mi">2509</span><span class="p">,</span>  <span class="mi">102</span><span class="p">,</span>    <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="p">[</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">2773</span><span class="p">,</span> <span class="mi">2487</span><span class="p">,</span> <span class="mi">1008</span><span class="p">,</span> <span class="mi">2773</span><span class="p">,</span> <span class="mi">2475</span><span class="p">,</span> <span class="mi">1064</span><span class="p">,</span> <span class="mi">2773</span><span class="p">,</span> <span class="mi">2509</span><span class="p">,</span>  <span class="mi">102</span><span class="p">,</span>    <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">]])</span>
+
+<span class="n">attention_mask</span>
+<span class="n">tensor</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">]])</span>
+</code></pre></div></p>
+<p>The <code>1</code>s in the <code>attention_mask</code> are used to indicate tokens that <em>should</em> be attended to, while the <code>0</code>s are used to indicate tokens that you don't want the model to attend to.</p>
+<p>Where does this attention mask get computed in the <code>BertTokenizerFast</code>? You have to chase down the <code>return_offsets_mapping</code>, and you will go all the way to the <code>_batch_encode_plus</code> method of the <code>PreTrainedTokenizerFast</code> class, which calls <code>self._tokenzier.encode_batch</code>. As part of the <code>fast</code> implementation of tokenizers, this method is implemented in Rust for performance reasons!</p>
+<p>You can still follow the logic of where the attention mask is computed in the non-fast implementation called <code>BertTokenizer</code>. To do so, you'll have to chase down the functions in the <code>forward</code> method all the way till you reach the <code>_pad</code> method of the <code>PreTrainedTokenizerBase</code> class, where you can see how Huggingface deals with the various padding strategies available. In the snippet above, we chose <code>max_length</code>, the relevant parts of the code are: </p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Initialize attention mask if not present.</span>
+    <span class="k">if</span> <span class="n">return_attention_mask</span> <span class="ow">and</span> <span class="s2">&quot;attention_mask&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">encoded_inputs</span><span class="p">:</span>
+        <span class="n">encoded_inputs</span><span class="p">[</span><span class="s2">&quot;attention_mask&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">required_input</span><span class="p">)</span>
+    <span class="n">difference</span> <span class="o">=</span> <span class="n">max_length</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">required_input</span><span class="p">)</span>
+    <span class="n">encoded_inputs</span><span class="p">[</span><span class="s2">&quot;attention_mask&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoded_inputs</span><span class="p">[</span><span class="s2">&quot;attention_mask&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">difference</span>
+</code></pre></div>
+<p>We next turn our attention to the <code>forward</code> method of the <code>BertModel</code> to see what is going on. You can go through the forward pass with -</p>
+<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">BertModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+
+<span class="c1"># Inference with the mask</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">)</span>
+</code></pre></div>
+<p>Once it enters the <code>forward</code> method, you'll see that there's a method called <code>get_extended_attention_mask</code> that is part of the <code>BertModel</code> (actually its inheritance is a bit more complicated - it is defined in the <code>ModuleUtilsMixin</code> and the chain of inheritance is something like <code>ModuleUtilsMixin</code> -&gt; <code>PreTrainedModel</code> -&gt; <code>BertPreTrainedModel</code> -&gt; <code>BertModel</code>, where the <code>-&gt;</code> is shorthand for "is inherited by").</p>
+<p>The conversion of this array of 0s and 1s to the form of <code>to_add</code> is done here in this line:</p>
+<div class="highlight"><pre><span></span><code><span class="n">extended_attention_mask</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">extended_attention_mask</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">min</span>
+</code></pre></div>
+<p>where the 1s in the <code>attention_mask</code> get converted to 0s and the <code>0</code>s get converted into a large negative value (like the <code>-np.inf</code> in the code snippets I provided). </p>
+<p>This extended mask then gets passed trough <code>BertEncoder</code>, to <code>BertAttention</code> to <code>BertSelfAttention</code> where it is finally used in the <code>forward</code> method: </p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BertSelfAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">,</span>
+        <span class="o">...</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># Take the dot product between &quot;query&quot; and &quot;key&quot; to get the raw attention scores.</span>
+        <span class="n">attention_scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query_layer</span><span class="p">,</span> <span class="n">key_layer</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">))</span>
+        <span class="o">...</span>
+        <span class="k">if</span> <span class="n">attention_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Apply the attention mask is (precomputed for all layers in BertModel forward() function)</span>
+            <span class="n">attention_scores</span> <span class="o">=</span> <span class="n">attention_scores</span> <span class="o">+</span> <span class="n">attention_mask</span>
+        <span class="c1"># Normalize the attention scores to probabilities.</span>
+        <span class="n">attention_probs</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">attention_scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="o">...</span>
+        <span class="k">return</span> <span class="n">outputs</span>
+</code></pre></div>
+<p>The <code>...</code> is there to get rid of all the "noise" that clutters our understanding of how masking is being used in the underlying torch modules in the HF library on Bert. </p>
+<p>As you can see, the structure is very similar to the code snippets that I wrote from scratch above!</p>
+<p>Hopefully, you now have more clarity about how this often overlooked (but important) part of any transformer block functions. </p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.sections"], "search": "../../../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

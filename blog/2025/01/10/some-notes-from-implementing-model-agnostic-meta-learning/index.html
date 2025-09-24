@@ -1,0 +1,1313 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://avishek-mondal.github.io/digital-garden/blog/2025/01/10/some-notes-from-implementing-model-agnostic-meta-learning/">
+      
+      
+        <link rel="prev" href="../../../../2024/08/09/various-observations-on-multiprocessing-in-python/">
+      
+      
+        <link rel="next" href="../../../02/06/notes-on-information-theory-for-meta-learning/">
+      
+      
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../../../../feed_rss_created.xml">
+        <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../../../../feed_rss_updated.xml">
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>Some notes from implementing model agnostic meta learning - mondalogue</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.e53b48f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../css/custom.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  
+  <script defer src="https://cloud.umami.is/script.js"
+          data-website-id="48c9f533-7598-4773-97e7-382966820748"></script>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#maml-pseudocode" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="mondalogue" class="md-header__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            mondalogue
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Some notes from implementing model agnostic meta learning
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="mondalogue" class="md-nav__button md-logo" aria-label="mondalogue" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    mondalogue
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Blog
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Blog
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hello!
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Archive
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2024/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2024
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Categories
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Categories
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    algorithms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#maml-pseudocode" class="md-nav__link">
+    <span class="md-ellipsis">
+      MAML Pseudocode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MAML Pseudocode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#non-optimized-pytorch-code-for-using-maml-on-any-generic-nnmodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Non-optimized pytorch code for using MAML on any generic nn.Module
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pytorch-shenanigans" class="md-nav__link">
+    <span class="md-ellipsis">
+      PyTorch shenanigans
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PyTorch shenanigans">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#torchautogradgrad" class="md-nav__link">
+    <span class="md-ellipsis">
+      torch.autograd.grad
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-time-comparisons-of-2-different-ways-of-doing-vanilla-sgd" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run time comparisons of 2 different ways of doing vanilla SGD
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clones
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_graphtrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_graph=True
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="create_graph=True">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-using-torchviz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualisation using torchviz
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+                        <time datetime="2025-01-10 00:00:00+00:00" class="md-ellipsis">January 10, 2025</time>
+                      </div>
+                    </li>
+                    
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              14 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+
+
+  <h1>Some notes from implementing model agnostic meta learning</h1>
+
+<p>I noticed something interesting about PyTorch while implementing the <a href="https://arxiv.org/pdf/1703.03400">MAML paper</a>. </p>
+<!-- more -->
+
+<h2 id="maml-pseudocode">MAML Pseudocode<a class="headerlink" href="#maml-pseudocode" title="Permanent link">&para;</a></h2>
+<p>The general algorithm presented in the paper can be summarised by the following pseudocode:</p>
+<div class="highlight"><pre><span></span><code>Initialize θ
+
+for _ in range(num_outer_steps):
+    Sample a batch of tasks {T_i} ~ p(T), where P(T) is your distribution of tasks (such as the omniglot dataset)
+
+    all_losses = []
+    for each task T_i in {T_i}:
+        # Split data into support set D_i^support and query set D_i^query
+
+        for _ in range(num_inner_steps)
+        # 1) Compute adapted parameters using one or more gradient steps on D_i^support:
+            θ_i&#39; = θ - α * ∇_θ L_Ti(θ, D_i^support)
+
+        # 2) Evaluate loss on the query set D_i^query using the adapted parameters θ_i&#39;:
+        L_Ti_query(θ_i&#39;) = L_Ti(θ_i&#39;, D_i^query)
+        update_all_losses(all_losses, L_Ti_query(θ_i&#39;))
+
+    # 3) Compute average query loss across all tasks
+    L_Ti_query_avg(θ_i&#39;) = compute_avg(all_losses)
+
+    # 4) Compute the meta-gradient:
+    θ ← θ - β * ∇_θ Σ_i [ L_Ti_query_avg(θ_i&#39;) ]
+</code></pre></div>
+<p>Refer to the paper for the motivation for doing training and inference using this method. The big idea here is that instead of training the model to predict something specific, you show the model <em>examples</em> (i.e. the support set) and then from there you teach it to infer the correct answer on the <em>query set</em>. </p>
+<p>So during training, your <em>training set</em> would consist of a <strong>support set</strong> and a <strong>query set</strong>, and the model's task is to predict the correct answer for the query set, <em>given</em> the support set. At test time, you'd pass in a support set as well - or your <em>context</em>, to use the today's LLM obsessed terminology - and ask the model to predict the answer for the query set. This is basically in-context learning. </p>
+<p>A couple of things to remember: </p>
+<ol>
+<li><strong>Inner Loop (Adaptation):</strong> For each task, you temporarily update the model parameters by one (or a few) gradient steps using the support split.</li>
+<li><strong>Outer Loop (Meta-Update):</strong> You then compute how well the <em>adapted</em> parameters perform on the corresponding query split. <strong>This performance</strong> drives the gradient update on the <em>original</em> (meta) parameters <span class="arithmatex">\(\theta\)</span>, i.e. loss from the query set is what is used to do the gradient updates on the parameters.</li>
+<li><strong>Backprop Through Adaptation:</strong> The outer update must differentiate through the inner loop (the adaptation step). This is how the support set helps in training - when the loss from the query set is used to do updates of the parameters, it implicitly includes the losses from the adaptation step. This is explained in the last sections.</li>
+</ol>
+<h3 id="non-optimized-pytorch-code-for-using-maml-on-any-generic-nnmodule">Non-optimized pytorch code for using MAML on any generic nn.Module<a class="headerlink" href="#non-optimized-pytorch-code-for-using-maml-on-any-generic-nnmodule" title="Permanent link">&para;</a></h3>
+<p>How would you implement this in Pytorch? The author of the original paper (Professor Chelsea Finn) used ConvNets as an example, and <a href="https://github.com/cbfinn/maml/blob/master/maml.py">did so</a> in TensorFlow V1 which is not readable for mere mortals.</p>
+<p>The concept though is simple enough, and can be re-written in PyTorch for any generic <code>nn.Module</code> subclass</p>
+<p>Below is how I'd implement MAML at a high level using PyTorch. Some syntactical liberties have been taken, and this code won't necessarily work if you copy paste it. Even if it did, it is probably going to be slow, but you should be able to work around it by optimizing individual components. </p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">init_model_with_params</span><span class="p">(</span><span class="n">base_model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a new copy of &#39;base_model&#39; and load the given &#39;params&#39; </span>
+<span class="sd">    (list of Tensors) into it as its parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        base_model (nn.Module): The model whose architecture we want to replicate.</span>
+<span class="sd">        params (List[Tensor]): A dict of parameter tensors in the same order </span>
+<span class="sd">            as base_model.named_parameters().</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        nn.Module: A new model instance whose parameters match &#39;params&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1) Deepcopy the structure of base_model to get a fresh model.</span>
+    <span class="c1">#    This copy initially has the same weights as base_model.</span>
+    <span class="n">new_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">base_model</span><span class="p">)</span>
+
+    <span class="c1"># 2) Iterate through new_model&#39;s parameters and replace with those from &#39;params&#39;.</span>
+    <span class="c1">#    We&#39;ll zip over the named_parameters of the new model and the list of adapted params.</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">adapted_p</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">(),</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">adapted_p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_model</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">forward_with_params</span><span class="p">(</span><span class="n">base_model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic forward pass using a new set of &#39;params&#39;.</span>
+<span class="sd">    Instantiates a new model, loads &#39;params&#39; into it, and computes the forward pass.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Rebuild a new model whose parameters match &#39;params&#39;</span>
+    <span class="n">model_copy</span> <span class="o">=</span> <span class="n">init_model_with_params</span><span class="p">(</span><span class="n">base_model</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+    <span class="c1"># Forward pass</span>
+    <span class="k">return</span> <span class="n">model_copy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">clone_params</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dict of parameter clones for the current model parameters.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">())</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">inner_loop</span><span class="p">(</span>
+    <span class="n">base_model</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">,</span>
+    <span class="n">x_train</span><span class="p">,</span>
+    <span class="n">y_train</span><span class="p">,</span>
+    <span class="n">loss_fn</span><span class="p">,</span>
+    <span class="n">lr</span><span class="p">,</span>
+    <span class="n">num_inner_steps</span><span class="p">,</span>
+    <span class="n">train</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform the MAML inner loop adaptation step.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Forward with current &#39;params&#39;</span>
+    <span class="n">cloned_params</span> <span class="o">=</span> <span class="n">clone_params</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_inner_steps</span><span class="p">):</span>
+        <span class="n">y_pred</span> <span class="o">=</span> <span class="n">forward_with_params</span><span class="p">(</span><span class="n">base_model</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">x_train</span><span class="p">)</span>
+        <span class="n">train_loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+
+        <span class="c1"># Compute gradients wrt &#39;params&#39;</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">train_loss</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">create_graph</span><span class="o">=</span><span class="n">train</span><span class="p">)</span>
+
+        <span class="c1"># Gradient descent update</span>
+        <span class="c1"># can make lr a dict to pass in different learning rates for different parameters</span>
+        <span class="n">cloned_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="o">-</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">grad</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">grad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cloned_params</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">grads</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">cloned_params</span>
+
+<span class="c1"># Some random model architecture. Could be anything really</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SomeModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># 2) Hyperparameters</span>
+    <span class="n">meta_lr</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">inner_lr</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">outer_optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">meta_lr</span><span class="p">)</span>
+    <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+
+    <span class="c1"># Just an example loop with random data</span>
+    <span class="n">num_meta_updates</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">meta_batch_size</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">num_inner_steps</span> <span class="o">=</span> <span class="mi">5</span>
+
+    <span class="k">for</span> <span class="n">meta_iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_meta_updates</span><span class="p">):</span>
+        <span class="n">outer_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+        <span class="n">meta_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">task_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">meta_batch_size</span><span class="p">):</span>
+            <span class="c1"># Sample support and query data for the task</span>
+            <span class="n">x_train</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">784</span><span class="p">)</span>
+            <span class="n">y_train</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="mi">32</span><span class="p">,))</span>
+            <span class="n">x_val</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">784</span><span class="p">)</span>
+            <span class="n">y_val</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="mi">32</span><span class="p">,))</span>
+
+            <span class="c1"># Clone the base model&#39;s params</span>
+            <span class="n">fast_weights</span> <span class="o">=</span> <span class="n">clone_params</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+            <span class="c1"># --- Inner Loop: Adaptation ---</span>
+            <span class="n">fast_weights</span> <span class="o">=</span> <span class="n">inner_loop</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fast_weights</span><span class="p">,</span> <span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">loss_fn</span><span class="p">,</span> <span class="n">inner_lr</span><span class="p">,</span> <span class="n">num_inner_steps</span><span class="p">)</span>
+
+            <span class="c1"># --- Compute the loss using updated (fast) params on the validation set ---</span>
+            <span class="n">val_pred</span> <span class="o">=</span> <span class="n">forward_with_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fast_weights</span><span class="p">,</span> <span class="n">x_val</span><span class="p">)</span>
+            <span class="n">val_loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">val_pred</span><span class="p">,</span> <span class="n">y_val</span><span class="p">)</span>
+
+            <span class="n">meta_loss</span> <span class="o">+=</span> <span class="n">val_loss</span>
+
+        <span class="n">meta_loss</span> <span class="o">=</span> <span class="n">meta_loss</span> <span class="o">/</span> <span class="n">meta_batch_size</span>
+
+        <span class="c1"># Outer loop update (meta update)</span>
+        <span class="n">meta_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">outer_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">meta_iter</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Iteration </span><span class="si">{</span><span class="n">meta_iter</span><span class="si">}</span><span class="s2">] Meta Loss: </span><span class="si">{</span><span class="n">meta_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="pytorch-shenanigans">PyTorch shenanigans<a class="headerlink" href="#pytorch-shenanigans" title="Permanent link">&para;</a></h2>
+<p>The code above has a number of features of PyTorch that you may not be familiar with if you're just starting out with PyTorch. I will try and point out the most "interesting" features. </p>
+<h3 id="torchautogradgrad">torch.autograd.grad<a class="headerlink" href="#torchautogradgrad" title="Permanent link">&para;</a></h3>
+<p>Why do we use <code>torch.autograd.grad</code>? Usually, in most PyTorch training loops, we use <code>loss_tensor.backward()</code>, and then do <code>optimizer.step</code>. Let's look at what the <code>.backwards</code> method does</p>
+<p>When using <code>.backwards</code>, gradients get accumulated when you do multiple backwards over a particular param:
+<div class="highlight"><pre><span></span><code><span class="n">x1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">4.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x3</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">5.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">y1</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x3</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x3</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>
+<span class="n">y1</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>
+<span class="n">y2</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">None</span>
+<span class="sd">tensor(7200.)</span>
+<span class="sd">tensor(14400.)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div></p>
+<p>Here you have 2 variables <span class="arithmatex">\(y_1\)</span> and <span class="arithmatex">\(y_2\)</span> both of which depend on <span class="arithmatex">\(x_1\)</span>. When you do <code>.backward</code> on each, the gradient on <span class="arithmatex">\(x_1\)</span> accumulates - first being <code>7200</code> from the first <code>.backward</code>, and then having another <code>7200</code> added from the second <code>.backward</code> for a final value of <code>14400</code>. </p>
+<p>Now, when you use <code>torch.autograd.grad</code>, the gradients of the tensor do not accumulate:</p>
+<div class="highlight"><pre><span></span><code><span class="n">x1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">4.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x3</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">5.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">y1</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x3</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x3</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>
+<span class="n">first_grads</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>
+<span class="n">y2</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">None</span>
+<span class="sd">None</span>
+<span class="sd">tensor(7200.)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div>
+<h3 id="run-time-comparisons-of-2-different-ways-of-doing-vanilla-sgd">Run time comparisons of 2 different ways of doing vanilla SGD<a class="headerlink" href="#run-time-comparisons-of-2-different-ways-of-doing-vanilla-sgd" title="Permanent link">&para;</a></h3>
+<p>Another thing to notice in the MAML code is the fact that in the <code>inner_loop</code>, we are simply doing gradient descent on the inner parameters. In <code>pytorch</code>, there are classes such as <code>torch.optim.SGD</code> that do this for us, and that we use in regular training loops for standard deep learning model training. It is possible to rewrite the entire code of the <code>inner_loop</code> to use these built in classes of optimizers, but is there a cost? </p>
+<p>Beyond issues of readability - using <code>torch.optim.SGD</code> does the updates of the model parameters implicitly, and is therefore something I do not like - is there a hit we are taking performance-wise when we write the <code>for</code> loops ourselves in the <code>inner_loop</code>?</p>
+<p>To test this, let's look at the code snippet below, which is basically comparing the runtime of a method that does gradient descent using a python for-loop "by hand" in <code>calculate_using_grad</code>, and one that uses <code>torch.optim.SGD</code> in <code>calculate_using_optim</code>. To prove that the final results are the same, there is also a method <code>compare_models_close</code>. </p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="n">RANDOM_IMAGE_PATH</span> <span class="o">=</span> <span class="s2">&quot;path/to/some/png_img.png&quot;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load_image</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a Tensor containing image data</span>
+<span class="sd">            shape (1, 28, 28)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">imageio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">])</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compare_models_close</span><span class="p">(</span>
+    <span class="n">model1</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="n">model2</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">params1</span> <span class="o">=</span> <span class="n">model1</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+    <span class="n">params2</span> <span class="o">=</span> <span class="n">model2</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">params1</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">!=</span> <span class="n">params2</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;params different!&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;model1: </span><span class="si">{</span><span class="n">params1</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;model2: </span><span class="si">{</span><span class="n">params2</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="n">params1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+            <span class="n">params1</span><span class="p">[</span><span class="n">param_name</span><span class="p">],</span>
+            <span class="n">params2</span><span class="p">[</span><span class="n">param_name</span><span class="p">],</span>
+            <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;param_name: </span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2"> not equal!&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;model1: </span><span class="si">{</span><span class="n">params1</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;model2: </span><span class="si">{</span><span class="n">params2</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">OmniglotCNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">num_hidden_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">num_conv_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cur_in_channels</span> <span class="o">=</span> <span class="n">in_channels</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_conv_layers</span><span class="p">):</span>
+            <span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
+                <span class="n">cur_in_channels</span><span class="p">,</span>
+                <span class="n">num_hidden_channels</span><span class="p">,</span>
+                <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">conv</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conv</span><span class="p">)</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">num_features</span><span class="o">=</span><span class="n">num_hidden_channels</span><span class="p">))</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+            <span class="n">cur_in_channels</span> <span class="o">=</span> <span class="n">num_hidden_channels</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">num_hidden_channels</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_image</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">RANDOM_IMAGE_PATH</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">load_image</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_using_optim</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="n">img</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">num_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">lr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+    <span class="n">inner_optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_steps</span><span class="p">):</span>
+        <span class="n">inner_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">inner_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_using_grad</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="n">img</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">num_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">lr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_steps</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">gradients</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">grad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">gradients</span><span class="p">):</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="n">grad</span> <span class="o">*</span> <span class="n">lr</span>
+
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+    <span class="n">num_classes</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">OmniglotCNN</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="n">num_classes</span><span class="p">)</span>
+    <span class="n">model_copy</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">lr</span> <span class="o">=</span> <span class="mf">0.4</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">get_image</span><span class="p">()</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">num_experiments</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_experiments</span><span class="p">)):</span>
+        <span class="n">calculate_using_optim</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+            <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;model using optim: </span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_experiments</span><span class="p">)):</span>
+        <span class="n">calculate_using_grad</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">model_copy</span><span class="p">,</span>
+            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+            <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;model using grad: </span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">compare_models_close</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_copy</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</code></pre></div>
+<p>The output would be the following:
+<div class="highlight"><pre><span></span><code>model using optim: 3.6533949375152586
+model using grad: 1.864612102508545
+</code></pre></div></p>
+<p>i.e. writing your own <code>for</code> loop is <em>faster</em> than using the in-built <code>torch.optim.SGD</code>! </p>
+<p>This was counterintuitive to me because one would assume that the in-built PyTorch class like would do gradient descent faster than a method that uses raw Python for-loops in its implementation. </p>
+<p>But this makes sense the moment you look at how <code>torch.optim.SGD</code> is implemented - for example, there is a lot of movement of data to/from a <code>buffer</code>, and a lot of cloning of tensors. I will not cover the details of how <code>torch.optim.SGD</code> is implemented, and would recommend interested readers to go take a look yourself to satisfy yourself that it is indeed quite slow.</p>
+<h3 id="clones">Clones<a class="headerlink" href="#clones" title="Permanent link">&para;</a></h3>
+<p>You will notice that in the <code>inner_loop</code>, the adapted parameters get initialised by cloning the parameters of the meta model. What does this do to the gradients? To investigate this let's take a look at the following code:</p>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">sgd_optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">sgd_optim</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<span class="n">x_copy</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">x_copy</span> <span class="o">=</span> <span class="n">x_copy</span> <span class="o">-</span> <span class="mf">2.</span>
+<span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x_copy</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span>
+<span class="c1"># define loss arbitrarily, just say 1-y for now</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">y</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">sgd_optim</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x_copy</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">tensor(6.2000, requires_grad=True)</span>
+<span class="sd">tensor(1., grad_fn=&lt;SubBackward0&gt;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div>
+<ol>
+<li>First, x = torch.tensor(3., requires_grad=True) creates our starting tensor with value 3.0. We turn on gradient tracking because we'll need to optimize this value.</li>
+<li><code>sgd_optim = torch.optim.SGD(params=[x], lr=0.4)</code> sets up the SGD optimizer with a learning rate of 0.4. This optimizer will only update the tensor x as it in the only tensor "registered" to the optimizer</li>
+<li>sgd_optim.zero_grad() clears any existing gradients, giving us a clean slate.</li>
+<li>Now comes the interesting part. x_copy = torch.clone(x) creates a copy of x with value 3.0. Then x_copy = x_copy - 2. subtracts 2 from x_copy, making x_copy = 1.0. This subtraction maintains the computational graph connection to x.</li>
+<li>y = 2<em>(x_copy</em>*4) computes y = 2 * (1.0^4) = 2 * 1 = 2</li>
+<li>loss = 1. - y computes loss = 1 - 2 = -1</li>
+<li>When loss.backward() computes gradients, it flows like this:<ol>
+<li>d(loss)/dy = -1</li>
+<li>d(y)/d(x_copy) = 8 * (x_copy^3) = 8 * 1 = 8</li>
+<li>d(x_copy)/dx = 1 (from the clone and subtract operations)</li>
+<li>Therefore, d(loss)/dx = -1 * 8 * 1 = -8</li>
+</ol>
+</li>
+<li>sgd_optim.step() updates x using the gradient and learning rate:<ol>
+<li>new_x = x - lr * gradient</li>
+<li>new_x = 3.0 - 0.4 * (-8) = 3.0 + 3.2 = 6.2</li>
+</ol>
+</li>
+</ol>
+<p>This is why the print statements will show:
+1. x = 6.2 (the updated value after optimization)
+2. x_copy = 1.0 (the original copied value minus 2)</p>
+<p>The key insight here is that even though we modified x_copy with subtraction, the computational graph still maintains the connection back to x. However, the gradient that flows back to x is different because x_copy now represents a different value (1.0 instead of 3.0) when computing y. This leads to a smaller gradient (-8 instead of -216 if you did not have the <code>x_copy = x_copy - 2.</code> line) and thus a smaller update to x.
+This example nicely illustrates how PyTorch's autograd system can handle multiple operations while maintaining gradient flow through the computational graph. </p>
+<p>Let's look at a more complicated example:
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">lr</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">outer_optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">)</span>
+<span class="c1"># simulate inner loop</span>
+<span class="n">x_inner</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="c1"># define y_inner arbitrarily</span>
+<span class="n">y_inner</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x_inner</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span> <span class="c1"># 2 * (3^4) = 162</span>
+<span class="c1"># define inner loss arbitrarily</span>
+<span class="n">inner_loss</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">-</span> <span class="n">y_inner</span> <span class="c1"># 2 - 162 = -160</span>
+<span class="n">gradients</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">inner_loss</span><span class="p">,</span> <span class="n">x_inner</span><span class="p">)</span> <span class="c1"># diff of 2 - 2x^4 =&gt; -8x^3 @ (x = 3) =&gt; -216</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;num of inner grads: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># arbitrary update - NOT what happens in MAML</span>
+<span class="n">x_inner</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x_inner</span> <span class="o">-</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># 6 - 0.4*(-216) = 92.4</span>
+
+<span class="c1"># now simulate the outer loop gradient update</span>
+<span class="c1"># define y_outer arbitrarily</span>
+<span class="n">y_outer</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_inner</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># 3 * (92.4 ^ 2) = 25613.28</span>
+<span class="c1"># define outer loss arbitrarily</span>
+<span class="n">outer_loss</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">y_outer</span> <span class="c1"># 1 - 25613.28 = -25612.28</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;outer_loss: </span><span class="si">{</span><span class="n">outer_loss</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">outer_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">outer_optim</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x_inner: </span><span class="si">{</span><span class="n">x_inner</span><span class="si">}</span><span class="s2">, x_inner.grad: </span><span class="si">{</span><span class="n">x_inner</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x: </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">, x.grad: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<p>The final print statements will have the following output:</p>
+<div class="highlight"><pre><span></span><code>num of inner grads: 1
+outer_loss: -25612.28125
+x_inner: 92.4000015258789, x_inner.grad: None
+x: 446.52001953125, x.grad: -1108.800048828125
+</code></pre></div>
+<p>To see why the final values of <code>x</code> and <code>x.grad</code> are what they are, let's work out what <code>x.grad</code> will be, and then we'll see what <code>x</code> is.</p>
+<p>The final <code>outer_loss.backward()</code> will basically accumulate the gradient on <code>x</code> such that <code>x.grad</code> will be <code>d(outer_loss)/d(x)</code>. Using the chain rule, you basically have </p>
+<p><div class="highlight"><pre><span></span><code>d(outer_loss)/d(x) = [d(outer_loss) / d(x_inner)] * [d(x_inner) / d(x)]
+</code></pre></div>
+The first term <code>[d(outer_loss) / d(x_inner)]</code> will basically be <code>d(1 - 3*x_inner^2)/d(x_inner) = -6*x_inner</code> @ <code>x_inner = 92.4</code>, so it will be <code>-554.4</code>.</p>
+<p>The second term is 2. This comes from the line </p>
+<p><div class="highlight"><pre><span></span><code>x_inner = 2 * x_inner - lr * gradients[0]
+</code></pre></div>
+where we overwrite the value of <code>x_inner</code> (originally just a clone of x) with a new update. <em>We ignore the contribution of <code>lr * gradients[0]</code> to the</em> <code>[d(x_inner) / d(x)]</code> <em>derivative!</em> The reason for this is PyTorch has not stored the computation graph from <code>gradients[0]</code> to <code>x</code>. </p>
+<p>The key reason for this is that  <code>create_graph=False</code> by default in the inner gradient update. This is <em>not</em> what the MAML algorithm is! What happens if you do set that parameter to <code>true</code>?</p>
+<h3 id="create_graphtrue">create_graph=True<a class="headerlink" href="#create_graphtrue" title="Permanent link">&para;</a></h3>
+<p>You will also notice that when doing <code>torch.autograd.grad</code> in the MAML algorithm in the <code>inner_loop</code>, we set <code>create_graph=True</code>. How does this affect anything?</p>
+<p>Let's use the exact same code as the more complicated case above, with the only difference being setting <code>create_graph = True</code> in the <code>torch.autograd.grad</code> line:</p>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">lr</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">outer_optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">)</span>
+<span class="c1"># simulate inner loop</span>
+<span class="n">x_inner</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="c1"># define y_inner arbitrarily</span>
+<span class="n">y_inner</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x_inner</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span> <span class="c1"># 2 * (3^4) = 162</span>
+<span class="c1"># define inner loss arbitrarily</span>
+<span class="n">inner_loss</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">-</span> <span class="n">y_inner</span> <span class="c1"># 2 - 162 = -160</span>
+<span class="n">gradients</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">inner_loss</span><span class="p">,</span> <span class="n">x_inner</span><span class="p">,</span> <span class="n">create_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># diff of 2 - 2x^4 =&gt; -8x^3 @ (x = 3) =&gt; -216</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;num of inner grads: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># arbitrary update - NOT what happens in MAML</span>
+<span class="n">x_inner</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x_inner</span> <span class="o">-</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># 6 - 0.4*(-216) = 92.4</span>
+
+<span class="c1"># now simulate the outer loop gradient update</span>
+<span class="c1"># define y_outer arbitrarily</span>
+<span class="n">y_outer</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_inner</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># 3 * (92.4 ^ 2) = 25613.28</span>
+<span class="c1"># define outer loss arbitrarily</span>
+<span class="n">outer_loss</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">y_outer</span> <span class="c1"># 1 - 25613.28 = -25612.28</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;outer_loss: </span><span class="si">{</span><span class="n">outer_loss</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">outer_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">outer_optim</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x_inner: </span><span class="si">{</span><span class="n">x_inner</span><span class="si">}</span><span class="s2">, x_inner.grad: </span><span class="si">{</span><span class="n">x_inner</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x: </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">, x.grad: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>The final output is:
+<div class="highlight"><pre><span></span><code>num of inner grads: 1
+outer_loss: -25612.28125
+x_inner: 92.4000015258789, x_inner.grad: None
+x: 19606.5859375, x.grad: -49008.96484375
+</code></pre></div></p>
+<p>You'll notice that while x_inner is the <em>exact</em> same as the previous output, the values for <code>x.grad</code> and <code>x</code> are considerably different! How did we get to <code>x.grad = -49008.96484375</code>?</p>
+<p>The machinations are the exact same as that above, where <code>x.grad = d(outer_loss)/d(x)</code>, and </p>
+<p><div class="highlight"><pre><span></span><code>d(outer_loss)/d(x) = [d(outer_loss) / d(x_inner)] * [d(x_inner) / d(x)]
+</code></pre></div>
+The difference now when <code>create_graph=True</code> is that PyTorch keeps the graph pointing from <code>x_inner</code> to <code>x</code>! So <code>[d(x_inner) / d(x)]</code> is no longer 1. </p>
+<p>What is it instead? You'll notice that we have this line:</p>
+<p><div class="highlight"><pre><span></span><code>x_inner = 2 * x_inner - lr * grad[0]
+</code></pre></div>
+where we are overwriting the value of <code>x_inner</code>. The original <code>x_inner</code> was the clone of <code>x</code>, and <code>grad[0]</code> was <code>-8x^3</code> (basically <code>d(inner_loss)/d(x_inner) = 2 * d(inner_loss)/d(x)</code> since when <code>grad[0]</code> was computed, <code>d(x_inner) / d(x) = 1</code> since they are still just clones of each other until we overwrite <code>x_inner</code>). So what you basically have is </p>
+<p><div class="highlight"><pre><span></span><code>x_inner = 2x - lr * (-8x^3) = 2x + 8*lr*x^3
+==&gt; 
+d(x_inner)/d(x) = 2 + 24*lr*x^2
+</code></pre></div>
+and this is all done when x = 3, so </p>
+<div class="highlight"><pre><span></span><code>d(x_inner)/d(x) = 2 + 24*lr*x^2
+= 2 + 24*0.4*(3^2)
+= 88.4
+</code></pre></div>
+<p>So now, you get</p>
+<div class="highlight"><pre><span></span><code>d(outer_loss)/d(x) = [d(outer_loss) / d(x_inner)] * [d(x_inner) / d(x)]
+
+= -554.4           *    88.4
+   ^
+   |
+Calculation from
+previous section
+
+= -49008.96
+</code></pre></div>
+<p>which is the value of <code>x.grad</code>!</p>
+<p>The value of <code>x</code> is as per usual <code>x = 3 - 0.4 * (-49008.96) = 19606.584</code></p>
+<p>This is what the MAML update is about. This is what we mean by 
+<div class="highlight"><pre><span></span><code>The outer update must differentiate through the inner loop (the adaptation step).
+</code></pre></div>
+right at the top of the article!</p>
+<h4 id="visualisation-using-torchviz">Visualisation using torchviz<a class="headerlink" href="#visualisation-using-torchviz" title="Permanent link">&para;</a></h4>
+<p>Using the <a href="https://github.com/szagoruyko/pytorchviz">torchviz library</a>, you can very easily visualize the computational graphs that PyTorch creates and how they differ when you do <code>create_graph=True</code>.</p>
+<p>The code to visualise our above examples are as simple as the following lines:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torchviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_dot</span>
+
+<span class="c1"># after defining outer_loss:</span>
+<span class="n">dot_</span> <span class="o">=</span> <span class="n">make_dot</span><span class="p">(</span><span class="n">outer_loss</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">})</span>
+<span class="n">dot_</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;graph1&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Graph for when <code>create_graph=False</code></p>
+<p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DFalse.png" /></p>
+<p>Graph for when <code>create_graph=True</code></p>
+<p><img alt="alt text" src="../../../../images/torch_viz_with_create_graph%3DTrue.png" /></p>
+<p>You can see that there is an extra branch coming out of the <code>CloneBackward0</code> node, representing PyTorch keeping track of the computation graph from the inner gradients to the original tensor <code>x</code>. </p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.sections"], "search": "../../../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
