@@ -8,13 +8,11 @@
       
       
       
-        <link rel="canonical" href="https://avishek-mondal.github.io/digital-garden/blog/2024/08/05/lipschitz-constant-of-a-linear-transformation/">
+        <link rel="canonical" href="https://avishek-mondal.github.io/digital-garden/blog/2026/02/01/metrics-in-field-extraction---what-makes-sense/">
       
       
-        <link rel="prev" href="../../../07/02/rope-embeddings/">
+        <link rel="prev" href="../../../../2025/02/06/notes-on-information-theory-for-meta-learning/">
       
-      
-        <link rel="next" href="../../09/various-observations-on-multiprocessing-in-python/">
       
       
         <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../../../../feed_rss_created.xml">
@@ -25,7 +23,7 @@
     
     
       
-        <title>Lipschitz constant of a linear transformation - mondalogue</title>
+        <title>Metrics in Field Extraction - what makes sense? - mondalogue</title>
       
     
     
@@ -83,7 +81,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#definitions" class="md-skip">
+        <a href="#the-standard-definition-trap" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Lipschitz constant of a linear transformation
+              Metrics in Field Extraction - what makes sense?
             
           </span>
         </div>
@@ -588,37 +586,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#definitions" class="md-nav__link">
+  <a href="#the-standard-definition-trap" class="md-nav__link">
     <span class="md-ellipsis">
-      Definitions
+      The standard definition trap
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Definitions">
+    <nav class="md-nav" aria-label="The standard definition trap">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#lipschitz-constant" class="md-nav__link">
+  <a href="#a-motivating-example" class="md-nav__link">
     <span class="md-ellipsis">
-      Lipschitz constant
+      A motivating example
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#vector-norm" class="md-nav__link">
+  <a href="#why-is-this-bad" class="md-nav__link">
     <span class="md-ellipsis">
-      Vector norm
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#matrix-norm" class="md-nav__link">
-    <span class="md-ellipsis">
-      Matrix norm
+      Why is this bad?
     </span>
   </a>
   
@@ -630,9 +619,42 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tying-it-all-together" class="md-nav__link">
+  <a href="#a-better-approach-the-double-penalty" class="md-nav__link">
     <span class="md-ellipsis">
-      Tying it all together
+      A better approach: the double penalty
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A better approach: the double penalty">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      New definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revised-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Revised calculations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-final-note-for-practitioners" class="md-nav__link">
+    <span class="md-ellipsis">
+      One final note for practitioners
     </span>
   </a>
   
@@ -675,10 +697,21 @@
                     <li class="md-nav__item">
                       <div class="md-nav__link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
-                        <time datetime="2024-08-05 00:00:00+00:00" class="md-ellipsis">August 5, 2024</time>
+                        <time datetime="2026-02-01 00:00:00+00:00" class="md-ellipsis">February 1, 2026</time>
                       </div>
                     </li>
                     
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/machine-learning/">Machine Learning</a>, 
+                              <a href="../../../../category/engineering/">Engineering</a></span>
+                        </div>
+                      </li>
                     
                     
                       
@@ -687,7 +720,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
                           <span class="md-ellipsis">
                             
-                              4 min read
+                              3 min read
                             
                           </span>
                         </div>
@@ -711,118 +744,98 @@
 
 
 
-  <h1>Lipschitz constant of a linear transformation</h1>
+  <h1>Metrics in Field Extraction - what makes sense?</h1>
 
-<p>DISCLAIMER: If you spot an error, please feel free to email me. </p>
-<p>The "Understanding Deep Learning" book has recently come out (you can look at it <a href="https://udlbook.github.io/udlbook/">here</a>, this post refers to the 2023-05-08 version), and is a great resource. In the appendices, it contains several statements which can be non-obvious to those of us who have been out of touch with linear algebra in our day jobs. </p>
-<p>Here is one such statement: </p>
-<p>"The Lipschitz constant of a linear transformation <span class="arithmatex">\(f[z] = Az + b\)</span> is equal to the maximum eigenvalue of the matrix A."</p>
-<p>This is not an obvious result at all. Let us try and break this down step by step.</p>
+<p>How do people in key information extraction systems measure performance? How are metrics computed? This seems quite niche, but this is one of those areas in ML where the boring adds the most value. Most research papers and literature use standard classification metrics, but in my experience they don't always map cleanly to extraction tasks. Using them blindly can lead to misleading results.</p>
 <!-- more -->
-<h2 id="definitions">Definitions<a class="headerlink" href="#definitions" title="Permanent link">&para;</a></h2>
-<h3 id="lipschitz-constant">Lipschitz constant<a class="headerlink" href="#lipschitz-constant" title="Permanent link">&para;</a></h3>
-<p>A function <span class="arithmatex">\(f[z]\)</span> is Lipschitz continuous if for all <span class="arithmatex">\(z1,z2\)</span>:</p>
-<div class="arithmatex">\[
-|f[z1] − f[z2]| ≤ β|z1 − z2|,
-\]</div>
-<p>The value <span class="arithmatex">\(\beta\)</span> is called the Lipschitz constant. Both definitions are taken from the UDL book in the link above.</p>
-<h3 id="vector-norm">Vector norm<a class="headerlink" href="#vector-norm" title="Permanent link">&para;</a></h3>
-<p>The following definitions are lifted from this very useful resource <a href="https://www.math.drexel.edu/~foucart/TeachingFiles/F12/M504Lect6.pdf">here</a> (Definition 3)</p>
-<p>Let <span class="arithmatex">\(\mathcal{V}\)</span> be a vector space over a field <span class="arithmatex">\(\mathbb{R}\)</span>. A function <span class="arithmatex">\(\lvert{.}\rvert : \mathcal{V} → \mathbb{R}\)</span> is called a (vector) norm if</p>
+
+<p>Here are some notes on why the standard approach fails and a better way to calculate precision and recall for these specific problems.</p>
+<h2 id="the-standard-definition-trap">The standard definition trap<a class="headerlink" href="#the-standard-definition-trap" title="Permanent link">&para;</a></h2>
+<p>Usually, when we think of precision and recall, most researchers/practitioners (for example, <a href="https://aihub.hkuspace.hku.hk/2025/09/03/document-intelligence-evolved-building-and-evaluating-kie-solutions-that-scale/">here</a>) rely on the following standard definitions:</p>
+<ul>
+<li><strong>True Positive (TP):</strong> The field exists in the ground truth, and your system correctly extracted its values accordign to the field-specific comparator.</li>
+<li><strong>False Positive (FP):</strong> Your system extracted a value for a field, but either the field doesn't exist in the ground truth, or the extracted value doesn't match the expected value.</li>
+<li><strong>False Negative (FN):</strong> The field exists in the ground truth, but your system failed to extract it.</li>
+<li><strong>True Negative (TN):</strong> The field doesn't exist in the ground truth, and your system correctly did not extract it.</li>
+</ul>
+<h3 id="a-motivating-example">A motivating example<a class="headerlink" href="#a-motivating-example" title="Permanent link">&para;</a></h3>
+<p>Let's look at a scenario extracting "Invoice Numbers" from four documents.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Document</th>
+<th style="text-align: left;">Ground Truth</th>
+<th style="text-align: left;">Prediction</th>
+<th style="text-align: left;">Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">doc1</td>
+<td style="text-align: left;">INV-100</td>
+<td style="text-align: left;">INV-100</td>
+<td style="text-align: left;">Match</td>
+</tr>
+<tr>
+<td style="text-align: left;">doc2</td>
+<td style="text-align: left;">INV-200</td>
+<td style="text-align: left;">INV-999</td>
+<td style="text-align: left;">Mismatch</td>
+</tr>
+<tr>
+<td style="text-align: left;">doc3</td>
+<td style="text-align: left;">INV-300</td>
+<td style="text-align: left;">INV-300</td>
+<td style="text-align: left;">Match</td>
+</tr>
+<tr>
+<td style="text-align: left;">doc4</td>
+<td style="text-align: left;">INV-400</td>
+<td style="text-align: left;">INV-888</td>
+<td style="text-align: left;">Mismatch</td>
+</tr>
+</tbody>
+</table>
+<p>In this set, we have 2 matches and 2 mismatches. Under the standard definition, many engineers might calculate metrics like this:</p>
 <ol>
-<li><span class="arithmatex">\(\lvert x \rvert ≥ 0\)</span> for all <span class="arithmatex">\(x ∈ \mathcal{V}\)</span> , with equality iff x = 0, [positivity]</li>
-<li><span class="arithmatex">\(\lvert λx \rvert = \lvertλ \rvert \lvert x \rvert\)</span> for all λ ∈ <span class="arithmatex">\(\mathbb{K}\)</span> and x ∈ V , [homogeneity] (reminder <span class="arithmatex">\(\mathbb{K} ∈ \{\mathbb{R}, \mathbb{C} \}\)</span>, i.e. either real or complex)</li>
-<li><span class="arithmatex">\(\lvert x + y \rvert ≤ \lvert x \rvert + \lvert y \rvert\)</span> for all x, y ∈ V . [triangle inequality]</li>
+<li><strong>TP = 2</strong> (doc1, doc3)</li>
+<li><strong>FP = 2</strong> (doc2, doc4) — <em>We predicted something, but it was wrong.</em></li>
+<li><strong>FN = 0</strong> — <em>We didn't "miss" the field; we just got the value wrong.</em></li>
 </ol>
-<p>An example of such a norm would be an expression as follows for <span class="arithmatex">\(p \geq 1\)</span>: </p>
-<div class="arithmatex">\[
-|x|_p = [|x_1|^p + |x_2|^p + |x_3|^p + ... ]^{\frac{1}{p}}
-\]</div>
-<h3 id="matrix-norm">Matrix norm<a class="headerlink" href="#matrix-norm" title="Permanent link">&para;</a></h3>
-<p>Also from the above resource (Definition 7)</p>
-<p>A function 
-<span class="arithmatex">\(|| .||: \mathcal{M} \rightarrow \mathbb{C}\)</span> 
-is a matrix norm if:</p>
+<p>The resulting metrics are:</p>
+<ul>
+<li><strong>Precision:</strong> <span class="arithmatex">\(2 / (2+2) = 50\%\)</span></li>
+<li><strong>Recall:</strong> <span class="arithmatex">\(2 / (2+0) = 100\%\)</span></li>
+</ul>
+<h3 id="why-is-this-bad">Why is this bad?<a class="headerlink" href="#why-is-this-bad" title="Permanent link">&para;</a></h3>
+<p>Is this really a "high-recall" model? A recall of <strong>100%</strong> gives the impression that the model will "usually contain the right invoice number somewhere". But in reality, half the time the number is completely wrong.</p>
+<p>This approach optimizes for "detecting" the presence of a field rather than actually extracting the content correctly.</p>
+<h2 id="a-better-approach-the-double-penalty">A better approach: the double penalty<a class="headerlink" href="#a-better-approach-the-double-penalty" title="Permanent link">&para;</a></h2>
+<p>The key insight for field extraction is that <strong>a mistake should increment both False Negatives and False Positives</strong>.</p>
+<p>If the model predicts <code>INV-999</code> when the truth is <code>INV-200</code>:</p>
 <ol>
-<li>
-<p><span class="arithmatex">\(||A|| \geq 0\)</span> for all 
-<span class="arithmatex">\(A \in \mathcal{M}\)</span>with equality iff x = 0 [positivity]</p>
-</li>
-<li>
-<p><span class="arithmatex">\(||\lambda A|| = |\lambda| ||A||\)</span> for all
-<span class="arithmatex">\(\lambda \in \mathbb{C}\)</span>and
-<span class="arithmatex">\(A \in \mathcal{M}\)</span>[homogeneity]</p>
-</li>
+<li>You wrongly guessed a value (FP).</li>
+<li>You failed to detect the correct value (FN).</li>
 </ol>
-<p>3.<span class="arithmatex">\(||A + B|| \leq ||A|| + ||B||\)</span> for all
-<span class="arithmatex">\(A, B \in \mathcal{M}\)</span> [triangle inequality]</p>
-<p>4.<span class="arithmatex">\(||AB|| \leq ||A|| ||B||\)</span> for all
-<span class="arithmatex">\(A, B \in \mathcal{M}\)</span> [submultiplicativity]</p>
-<p>The last property, submultiplicativity, deserves some more attention. It uses a more general definition of matrix norm which is </p>
-<div class="arithmatex">\[
-||A|| = \text{sup}\{|Ax|: x \in \mathcal{V}, |x| \leq 1 \} \\ 
-= \text{sup}\{\frac{|Ax|}{|x|}: x \in \mathcal{V}, x \neq 0 \}
-\]</div>
-<p>(lots of resources use this definition, for clarification of max vs sup, look <a href="https://math.stackexchange.com/questions/3575425/why-supremum-not-max-in-definition-of-matrix-norm">here</a>).</p>
-<p>An intermediate result we can now prove is the following (or you could also just look <a href="https://math.stackexchange.com/questions/1513399/ax%E2%89%A4-a-x-space-forall-x-in-mathbbrn-rudins-principles">here</a>):</p>
-<div class="arithmatex">\[
-|Ax| \leq ||A|| |x|, \, \forall x \in \mathbb{R}^n
-\]</div>
-<p>The proof in the top answer of the above link from Stackoverflow is copied below for ease of reference: </p>
-<p>By definition <span class="arithmatex">\(‖𝐴‖= \text{sup} \{|Ax|, x ∈ \mathbb{R}^n, |x| ≤ 1 \}\)</span> and hence for any 
-<span class="arithmatex">\(x \in \mathbb{R}^n\)</span> such that 
-<span class="arithmatex">\(|x| \leq 1\)</span> we must have by the definition of supremum that 
-<span class="arithmatex">\(|Ax| \leq ||A||\)</span></p>
-<p>The <span class="arithmatex">\(x = 0\)</span> case is trivial.</p>
-<p>For the <span class="arithmatex">\(x \neq 0\)</span> case: </p>
-<p>Let 
-<span class="arithmatex">\(y = \frac{x}{|x|}\)</span>.
-It follows that <span class="arithmatex">\(|y| = 1\)</span>, and hence <span class="arithmatex">\(|Ay| \leq ||A||\)</span> from above.</p>
-<p>Now we have </p>
-<div class="arithmatex">\[
-|Ay| = | A \frac{x}{|x|} | = \frac{|Ax|}{|x|}
-\]</div>
-<p>Therefore, since <span class="arithmatex">\(|x|&gt;0\)</span>,
-we have <span class="arithmatex">\(|Ax|=|Ay||x|≤ ||A|| |x|\)</span></p>
-<h2 id="tying-it-all-together">Tying it all together<a class="headerlink" href="#tying-it-all-together" title="Permanent link">&para;</a></h2>
-<p>Now, we can look at the Lipschitz constant of a linear transformation <span class="arithmatex">\(f[z] = Az + b\)</span>.</p>
-<div class="arithmatex">\[
-|f[z1] − f[z2]| = |Az_1 - Az_2| \\
-= |A(z_1 - z_2)| \\
-\leq ||A|| |z_1 - z_2|
-\]</div>
-<p>The last step is using the same intermediate property we proved when showing the proof for submultiplicativity.</p>
-<p>This is the general case - the Lipschitz constant of a linear transform will be the matrix norm of the matrix <span class="arithmatex">\(A\)</span>.</p>
-<p>We need one more step to prove the claim in the book, and I think that involves deviating away from the general case.</p>
-<p>I am going to be following some of the material <a href="https://www.sjsu.edu/faculty/guangliang.chen/Math253S20/lec7matrixnorm.pdf">here</a>. When the 2-norm is used, the induced matrix operator is the following (called the spectral norm):</p>
-<div class="arithmatex">\[
-||A||_2 = \text{max}_{x \neq 0} \{ \frac{|Ax|_2}{|x|_2} \}
-\]</div>
-<p>It is a known result for the 2-norm that 
-<span class="arithmatex">\(|y|_2^2 = y^Ty\)</span></p>
-<p>So let us take the square of the induced matrix operator.</p>
-<div class="arithmatex">\[
-||A||_2^2 = \text{max}_{x \neq 0} \{ \frac{|Ax|_2^2}{|x|_2^2} \} \\
-= \text{max}_{x \neq 0} \{ \frac{x^TA^TAx}{x^Tx} \}
-\]</div>
-<p>We will need to use concepts from singular value decomposition (SVD). <a href="https://math.mit.edu/classes/18.095/2016IAP/lec2/SVD_Notes.pdf">This</a> resource might help. The "trick" is to write A as</p>
-<div class="arithmatex">\[
-A = U\Sigma V^T
-\]</div>
-<p>and then write <span class="arithmatex">\(A^TA = (U\Sigma V^T)^T (U\Sigma V^T) = V \Sigma^T \Sigma V\)</span>, where <span class="arithmatex">\(\Sigma\)</span> is a diagonal matrix with the eigenvalues of A in the diagonal.</p>
-<p>Let <span class="arithmatex">\(\lambda_1\)</span> be the largest eigenvalue of A. Then, the maximum value of the ratio of <span class="arithmatex">\(\frac{x^TA^TAx}{x^Tx}\)</span> can be shown to be <span class="arithmatex">\(\lambda_1^2\)</span>.</p>
-<p>That was the final step - showing 
-<span class="arithmatex">\(||A||_2^2 = \lambda_1^2\)</span>,
-i.e. <span class="arithmatex">\(||A||_2 = \lambda_1\)</span></p>
-<p>So therefore, </p>
-<div class="arithmatex">\[
-|f[z1] − f[z2]|_2 = |Az_1 - Az_2|_2 \\
-= |A(z_1 - z_2)|_2 \\
-\leq ||A||_2 |z_1 - z_2|_2 \\
-= \lambda_1 |z_1 - z_2|
-\]</div>
-<p>Other resources: 
-1. I found <a href="https://www.math.drexel.edu/~foucart/TeachingFiles/F12/M504Lect5.pdf">this</a> from Drexel University to also be quite helpful</p>
+<h3 id="new-definitions">New definitions<a class="headerlink" href="#new-definitions" title="Permanent link">&para;</a></h3>
+<p>To formalize this, we can break down our states into more granular buckets:</p>
+<ul>
+<li><strong>gt_correct:</strong> Ground truth exists, prediction matches.</li>
+<li><strong>gt_incorrect:</strong> Ground truth exists, prediction mismatches.</li>
+<li><strong>gt_missing:</strong> Ground truth exists, prediction is empty.</li>
+<li><strong>nogt_incorrect:</strong> No ground truth, but model predicted something.</li>
+<li><strong>nogt_correct:</strong> No ground truth, and model predicted nothing.</li>
+</ul>
+<h3 id="revised-calculations">Revised calculations<a class="headerlink" href="#revised-calculations" title="Permanent link">&para;</a></h3>
+<p>Using these states, we get formulas that actually reflect performance:</p>
+<div class="arithmatex">\[TP = \text{gt_correct}\]</div>
+<div class="arithmatex">\[FP = \text{gt_incorrect} + \text{nogt_incorrect}\]</div>
+<div class="arithmatex">\[FN = \text{gt_incorrect} + \text{gt_missing}\]</div>
+<p>Notice that <code>gt_incorrect</code> now penalizes both precision and recall.</p>
+<h2 id="one-final-note-for-practitioners">One final note for practitioners<a class="headerlink" href="#one-final-note-for-practitioners" title="Permanent link">&para;</a></h2>
+<p>When building these systems, there is a tendency to distinguish between "The model detected the field but predicted 'None'" and "The model completely missed detecting the field."</p>
+<p><strong>Does this distinction usually matter in practice? No.</strong></p>
+<p>Treat these two cases as the same. A client or end-user effectively never cares about the distinction between a "detected None" and a "missing detection". Trying to keep them distinct is often a sign of premature optimization and will make the codebase significantly harder to maintain.</p>
 
 
 
